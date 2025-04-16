@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smartworking Tracker</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --success: #22c55e;
+            --background: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --border: #e2e8f0;
+            --accent: #f1f5f9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 1.5rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .grid-cols-4 {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .grid-cols-3 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .button-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .button-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .button-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .button-danger:hover {
+            background-color: var(--danger-hover);
+        }
+
+        .button-outline {
+            background-color: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .button-outline:hover {
+            background-color: var(--accent);
+        }
+
+        .input {
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            width: 100%;
+        }
+
+        .flex {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .space-y > * + * {
+            margin-top: 0.75rem;
+        }
+
+        .mt-4 {
+            margin-top: 1rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+
+        .interval {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
+        @media (min-width: 768px) {
+            .interval {
+                grid-template-columns: 1fr 1fr auto;
+            }
+        }
+
+        .day-button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .day-button.active {
+            background-color: var(--success);
+            color: white;
+            border: none;
+        }
+
+        .holiday-item, .vacation-item {
+            background-color: var(--accent);
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-item {
+            background-color: var(--accent);
+            padding: 1rem;
+            border-radius: 0.375rem;
+            text-align: center;
+        }
+
+        .dashboard-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">
+            <span>📊</span>
+            Smartworking Tracker
+        </h1>
+
+        <!-- Calcolatore Ore Lavorative -->
+        <div class="card">
+            <h2 class="subtitle">
+                <span>⏰</span>
+                Calcolatore Ore Lavorative
+            </h2>
+            <div id="intervals-container">
+                <!-- Gli intervalli verranno inseriti qui dinamicamente -->
+            </div>
+            <div class="flex mt-4">
+                <button class="button button-primary" id="add-interval">Aggiungi Intervallo</button>
+                <button class="button button-primary" id="calculate">Calcola Totale</button>
+            </div>
+            <div class="mt-4 space-y">
+                <p>Totale minuti lavorati: <span id="total-minutes">0</span></p>
+                <p>Straordinari: <span id="overtime">0</span></p>
+            </div>
+        </div>
+
+        <!-- Giorni Smartworking -->
+        <div class="card">
+            <h2 class="subtitle">
+                <span>🏠</span>
+                Giorni Smartworking
+            </h2>
+            <p class="mb-4">Seleziona i giorni della settimana (massimo 3):</p>
+            <div id="days-container" class="flex"></div>
+        </div>
+
+        <!-- Gestione Festività -->
+        <div class="card">
+            <h2 class="subtitle">
+                <span>🎉</span>
+                Gestione Festività
+            </h2>
+            <div class="grid grid-cols-3 mb-4">
+                <input type="date" id="holiday-date" class="input" />
+                <input type="text" id="holiday-name" placeholder="Nome festività" class="input" />
+                <button class="button button-primary" id="add-holiday">Aggiungi Festività</button>
+            </div>
+            <div id="holidays-container" class="space-y">
+                <!-- Le festività verranno inserite qui dinamicamente -->
+            </div>
+        </div>
+
+        <!-- Gestione Ferie -->
+        <div class="card">
+            <h2 class="subtitle">
+                <span>🌴</span>
+                Gestione Ferie
+            </h2>
+            <div class="grid grid-cols-3 mb-4">
+                <input type="date" id="vacation-start" class="input" />
+                <input type="date" id="vacation-end" class="input" />
+                <button class="button button-primary" id="add-vacation">Aggiungi Intervallo</button>
+            </div>
+            <div id="vacations-container" class="space-y">
+                <!-- Gli intervalli di ferie verranno inseriti qui dinamicamente -->
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="card">
+            <h2 class="subtitle">
+                <span>📈</span>
+                Dashboard
+            </h2>
+            <div class="grid grid-cols-4">
+                <div class="dashboard-item">
+                    <p>Giorni Smartworking</p>
+                    <p class="dashboard-value" id="sw-days-count">0</p>
+                </div>
+                <div class="dashboard-item">
+                    <p>Ferie Programmate</p>
+                    <p class="dashboard-value" id="vacation-days-count">0</p>
+                </div>
+                <div class="dashboard-item">
+                    <p>Intervalli Ferie</p>
+                    <p class="dashboard-value" id="vacation-intervals-count">0</p>
+                </div>
+                <div class="dashboard-item">
+                    <p>Straordinari (min)</p>
+                    <p class="dashboard-value" id="overtime-display">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Costanti e variabili globali
+        const targetMinutes = 504; // 8 ore e 24 minuti
+        const weekDays = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì"];
+        let smartworkingDays = {};
+        let holidays = [
+            { date: "2025-01-01", name: "Capodanno" },
+            { date: "2025-04-18", name: "Pasquetta" },
+            { date: "2025-05-01", name: "Festa dei Lavoratori" },
+            { date: "2025-08-01", name: "Festa d'estate" },
+            { date: "2025-12-25", name: "Natale" }
+        ];
+        let vacationIntervals = [];
+
+        // Inizializzazione
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inizializza giorni smartworking
+            weekDays.forEach(day => {
+                smartworkingDays[day] = false;
+            });
+
+            // Crea i pulsanti dei giorni
+            const daysContainer = document.getElementById('days-container');
+            weekDays.forEach(day => {
+                const button = document.createElement('button');
+                button.className = 'button button-outline day-button';
+                button.textContent = day;
+                button.onclick = () => toggleSmartworkingDay(day, button);
+                daysContainer.appendChild(button);
+            });
+
+            // Aggiungi primo intervallo orario
+            addNewInterval();
+
+            // Mostra festività iniziali
+            renderHolidays();
+
+            // Event listeners
+            document.getElementById('add-interval').onclick = addNewInterval;
+            document.getElementById('calculate').onclick = calculateWorkTime;
+            document.getElementById('add-holiday').onclick = addHoliday;
+            document.getElementById('add-vacation').onclick = addVacationInterval;
+        });
+
+        // Funzioni per la gestione degli intervalli orari
+        function addNewInterval() {
+            const container = document.getElementById('intervals-container');
+            const div = document.createElement('div');
+            div.className = 'interval';
+            div.innerHTML = `
+                <input type="time" class="input entry-time" />
+                <input type="time" class="input exit-time" />
+                ${container.children.length > 0 ? '<button class="button button-danger" onclick="this.parentElement.remove()">Rimuovi</button>' : ''}
+            `;
+            container.appendChild(div);
+        }
+
+        function calculateWorkTime() {
+            const intervals = document.querySelectorAll('.interval');
+            let totalMinutes = 0;
+
+            intervals.forEach(interval => {
+                const entry = interval.querySelector('.entry-time').value;
+                const exit = interval.querySelector('.exit-time').value;
+
+                if (entry && exit) {
+                    const [entryHour, entryMinute] = entry.split(':').map(Number);
+                    const [exitHour, exitMinute] = exit.split(':').map(Number);
+                    const diff = (exitHour * 60 + exitMinute) - (entryHour * 60 + entryMinute);
+                    if (diff > 0) totalMinutes += diff;
+                }
+            });
+
+            const overtime = Math.max(0, totalMinutes - targetMinutes);
+            document.getElementById('total-minutes').textContent = totalMinutes;
+            document.getElementById('overtime').textContent = overtime;
+            document.getElementById('overtime-display').textContent = overtime;
+        }
+
+        // Funzioni per la gestione dei giorni di smartworking
+        function toggleSmartworkingDay(day, button) {
+            const selectedCount = Object.values(smartworkingDays).filter(v => v).length;
+            if (!smartworkingDays[day] && selectedCount >= 3) return;
+
+            smartworkingDays[day] = !smartworkingDays[day];
+            button.classList.toggle('active');
+            
+            document.getElementById('sw-days-count').textContent = 
+                Object.values(smartworkingDays).filter(v => v).length;
+        }
+
+        // Funzioni per la gestione delle festività
+        function addHoliday() {
+            const date = document.getElementById('holiday-date').value;
+            const name = document.getElementById('holiday-name').value;
+
+            if (date && name) {
+                holidays.push({ date, name });
+                renderHolidays();
+                document.getElementById('holiday-date').value = '';
+                document.getElementById('holiday-name').value = '';
+            }
+        }
+
+        function renderHolidays() {
+            const container = document.getElementById('holidays-container');
+            container.innerHTML = holidays.map(holiday => `
+                <div class="holiday-item">
+                    <span>${holiday.date} - ${holiday.name}</span>
+                    <button class="button button-danger" onclick="removeHoliday('${holiday.date}')">Rimuovi</button>
+                </div>
+            `).join('');
+        }
+
+        function removeHoliday(date) {
+            holidays = holidays.filter(h => h.date !== date);
+            renderHolidays();
+        }
+
+        // Funzioni per la gestione delle ferie
+        function addVacationInterval() {
+            const start = document.getElementById('vacation-start').value;
+            const end = document.getElementById('vacation-end').value;
+
+            if (start && end && start <= end) {
+                const effectiveDays = calculateEffectiveDays(start, end);
+                vacationIntervals.push({ start, end, effectiveDays });
+                renderVacations();
+                document.getElementById('vacation-start').value = '';
+                document.getElementById('vacation-end').value = '';
+            }
+        }
+
+        function calculateEffectiveDays(start, end) {
+            const days = [];
+            const current = new Date(start);
+            const endDate = new Date(end);
+
+            while (current <= endDate) {
+                const dayOfWeek = current.getDay();
+                const dateString = current.toISOString().split('T')[0];
+                
+                if (dayOfWeek !== 0 && dayOfWeek !== 6 && !holidays.some(h => h.date === dateString)) {
+                    days.push(dateString);
+                }
+                
+                current.setDate(current.getDate() + 1);
+            }
+
+            return days;
+        }
+
+        function renderVacations() {
+            const container = document.getElementById('vacations-container');
+            container.innerHTML = vacationIntervals.map((interval, index) => `
+                <div class="vacation-item">
+                    <div>
+                        <p>${interval.start} - ${interval.end}</p>
+                        <small>Giorni effettivi: ${interval.effectiveDays.length}</small>
+                    </div>
+                    <button class="button button-danger" onclick="removeVacation(${index})">Rimuovi</button>
+                </div>
+            `).join('');
+
+            document.getElementById('vacation-intervals-count').textContent = vacationIntervals.length;
+        }
+
+        function removeVacation(index) {
+            vacationIntervals.splice(index, 1);
+            renderVacations();
+        }
+    </script>
+</body>
+</html>
