@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Umby@Work 2025</title>
+  <style>
+    body{font-family:sans-serif;background:#fafbfc;}
+    .container{max-width:1120px;margin:24px auto;padding:12px;}
+    h1{font-size:1.6em;}
+    .card{background:#fff;border-radius:14px;box-shadow:0 4px 20px #0001;padding:21px 21px 15px 21px;margin-bottom:19px;}
+    .bar-label2{font-size:11.5px;fill:#333;font-weight:bold;text-anchor:middle;}
+    .bar-x-label{font-size:10.5px;fill:#5a6980;}
+    .bar-neg{fill:#E17055;}
+    .bar-pos{fill:#68C38C;}
+    .bar-norm{fill:#4A90E2;}
+    .quorum-table{margin-top:9px;font-size:14px;width:100%;border-collapse:collapse;}
+    .quorum-table th,.quorum-table td{padding:3px 7px;border-bottom:1px solid #eee;text-align:right;}
+    .quorum-table th{text-align:center;}
+    .ok{color:#31853b;font-weight:600;}
+    .ko{color:#b81d28;font-weight:600;}
+    .summary{margin:9px 2px;font-size:15px;}
+    .label-ferie{color:#db7c01;font-weight:500;}
+    .label-festivo{color:#4473b2;}
+    .label-lavo{color:#194956;}
+    .footer{font-size:13px;color:#aaa;margin-top:17px;text-align:center;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Smartworking & Orario Ticino 2025 – Quorum Settimanale/Mensile</h1>
+    <div class="card">
+      <h2>Dashboard Quorum Settimanale (42:00)</h2>
+      <div id="barchart-week"></div>
+      <table class="quorum-table" id="tabella-sett"></table>
+    </div>
+    <div class="card">
+      <h2>Dashboard Quorum Mensile</h2>
+      <div id="barchart-month"></div>
+      <table class="quorum-table" id="tabella-mese"></table>
+    </div>
+    <div class="footer">© 2025 Smartworking — Quorum 42h/settimana</div>
+  </div>
+  <script>
+    // === Dummy dati: ferie, festivi, malattia, permesso ===
+    const FESTIVI = {"2025-01-01":1,"2025-01-06":1,"2025-03-19":1,"2025-04-18":1,"2025-04-21":1,
+      "2025-05-01":1,"2025-05-29":1,"2025-06-09":1,"2025-06-19":1,"2025-08-01":1,"2025-08-15":1,
+      "2025-11-01":1,"2025-12-08":1,"2025-12-25":1,"2025-12-26":1 };
+    // Esempio: ripieno con qualche giorno
+    const ferie = {"2025-01-13":1, "2025-09-10":1, "2025-09-11":1};
+    const lavoro = {}; // esempio base: riempi per vedere cambiamento
+    function pad2(n){return n<10?"0"+n:""+n;}
+    // Modifica qui sotto WORKDAYS: forma {"YYYY-MM-DD":"in1:out1,in2:out2"}
+    lavoro["2025-01-02"]={in1:"08:00",out1:"12:00",in2:"13:00",out2:"17:24"};
+    lavoro["2025-01-03"]={in1:"08:00",out1:"12:00",in2:"13:00",out2:"17:24"};
+    lavoro["2025-01-09"]={in1:"08:00",out1:"12:00",in2:"13:00",out2:"18:00"};
+    lavoro["2025-02-04"]={in1:"08:15",out1:"12:00",in2:"13:10",out2:"17:30"};
+    lavoro["2025-03-23"]={in1:"08:00",out1:"12:10",in2:"13:00",out2:"18:10"};
+    // funzione minuti lavorati
+    function minutiLavorati(orari){
+      let tot=0;
+      if(orari.in1&&orari.out1) tot+=parseTime(orari.out1)-parseTime(orari.in1);
+      if(orari.in2&&orari.out2) tot+=parseTime(orari.out2)-parseTime(orari.in2);
+      return Math.max(tot,0);
+    }
+    function parseTime(t){
+      if(!t) return 0;
+      let [h,m]=t.split(":").map(Number);
+      return h*60+(m||0);
+    }
+    // Valorizza tutte le settimane 2025
+    function rangeWeeks(year){
+      let result=[], d=new Date(`${year}-01-01`), w, weekmap={};
+      d.setDate(d.getDate()-d.getDay()+1); // Monday of first week
+      for(let i=0;i<54*7;i++){
+        let y=d.getFullYear(); if(y>year) break;
+        let iso = `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+        w = getWeekNumber(d);
+        if(!weekmap[w]) weekmap[w]=[];
+        weekmap[w].push(iso);
+        d.setDate(d.getDate()+1);
+      }
+      return weekmap;
+    }
+    // Week number ISO
+    function getWeekNumber(d){
+      d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      let dayNum = d.getUTCDay() || 7; // Monday = 1
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      let yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+      return Math.ceil((((d - yearStart)/86400000)+1)/7);
+    }
+    function min2hm(min){let h=Math.floor(min/60),m=min%60;return[h,m];}
+    // ============= BARCHART SETTIMANA ===========
+    function aggiornaSettimane(year){
+      let quorumSettimana = 504*5/5; // 504 min = 8h24m, 42h = 2520 min
+      let weeks = rangeWeeks(year);
+      let weeknums = Object.keys(weeks).map(Number).sort((a,b)=>a-b);
+      let arr = weeknums.map(w=>{
+        let giorni = weeks[w];
+        let totMin=0;
+        let giorniLavorati=0, ferieC=0, festiviC=0;
+        giorni.forEach(dt=>{
+          if(ferie[dt]){ totMin+=504; ferieC++;}
+          else if(FESTIVI[dt]){ totMin+=504; festiviC++;}
+          else if(lavoro[dt]){ totMin += minutiLavorati(lavoro[dt]); giorniLavorati++;}
+        });
+        return {w,totMin,giorniLavorati,ferieC,festiviC};
+      });
+      // Bar chart
+      let svgW = 640, svgH = 80, marginY = 19, barW=svgW/(arr.length+2.5);
+      let maxTot = Math.max(...arr.map(x=>x.totMin),2520);
+      let svg = `<svg width="${svgW}" height="${svgH}">`;
+      arr.forEach(({w, totMin},i)=>{
+        let h = (totMin/maxTot)*(svgH-2*marginY);
+        let cls = totMin >= 2520 ? "bar-pos" : totMin>0 ? "bar-neg" : "bar-norm";
+        let [th,tm]=min2hm(totMin);
+        svg+=`
+          <g>
+            <rect x="${i*(barW)}" y="${svgH-h-marginY}" width="${barW-2}" height="${h}"
+              class="${cls}"/>
+            <text class="bar-label2" x="${i*barW+barW/2-1}" y="${svgH-h-marginY-5}">
+              ${th}:${pad2(tm)}
+            </text>
+            <text class="bar-x-label" x="${i*barW+barW/2-1}" y="${svgH-2}">W${w}</text>
+          </g>
+          `;
+      });
+      svg+="</svg>";
+      document.getElementById("barchart-week").innerHTML=svg+"<div style='color:#899;font-size:13px;'>Barre verdi = ≥ quorum | rosse = < quorum | Valorizzazione ferie/festivi: 8h24min</div>";
+      // Tabella settimana
+      let html = `<tr>
+        <th>Settimana</th><th>Tot. ore</th><th>Quorum</th><th>Scostamento</th><th class="label-ferie">Ferie</th><th class="label-festivo">Festivi</th>
+      </tr>`;
+      arr.forEach(({w,totMin,ferieC,festiviC})=>{
+        let [th,tm]=min2hm(totMin), [qh,qm]=min2hm(2520);
+        let disc=totMin-2520, [dh,dm]=min2hm(Math.abs(disc));
+        html+=`<tr>
+          <td>W${w}</td>
+          <td>${th}:${pad2(tm)}</td>
+          <td>${qh}:${pad2(qm)}</td>
+          <td class="${disc>=0?'ok':'ko'}">${disc>=0?'+':'-'}${dh}:${pad2(dm)}</td>
+          <td>${ferieC||""}</td>
+          <td>${festiviC||""}</td>
+        </tr>`;
+      });
+      document.getElementById("tabella-sett").innerHTML=html;
+    }
+    // ============= BARCHART MESE ===========
+    function aggiornaMesi(year){
+      let mesi = Array(12).fill(0), settimanePerMese=Array(12).fill(0);
+      let ferieC=Array(12).fill(0), festiviC=Array(12).fill(0);
+      Object.keys(lavoro).forEach(dt=>{
+        if(dt.startsWith(year+"-")){
+          let m=Number(dt.slice(5,7))-1;
+          mesi[m]+=minutiLavorati(lavoro[dt]);
+          settimanePerMese[m]=true;
+        }
+      });
+      Object.keys(ferie).forEach(dt=>{
+        if(dt.startsWith(year+"-")){
+          let m=Number(dt.slice(5,7))-1;
+          mesi[m]+=504;ferieC[m]++;
+        }
+      });
+      Object.keys(FESTIVI).forEach(dt=>{
+        if(dt.startsWith(year+"-")){
+          let m=Number(dt.slice(5,7))-1;
+          mesi[m]+=504;festiviC[m]++;
+        }
+      });
+      let svgW = 640, svgH = 80, marginY = 19, barW=svgW/14.8;
+      let maxTot = Math.max(...mesi,2520*5);
+      let svg = `<svg width="${svgW}" height="${svgH}">`;
+      for(let m=0;m<12;m++){
+        let nSett = Math.ceil((giorniInMese(year,m)+new Date(year,m,1).getDay())/7);
+        settimanePerMese[m]=nSett;
+        let quorumMese = 2520*nSett;
+        let h = (mesi[m]/maxTot)*(svgH-2*marginY);
+        let cls = mesi[m] >= quorumMese ? "bar-pos" : mesi[m]>0 ? "bar-neg" : "bar-norm";
+        let [th,tm]=min2hm(mesi[m]);
+        svg+=`
+          <g>
+            <rect x="${m*barW+17}" y="${svgH-h-marginY}" width="${barW-2}" height="${h}" class="${cls}"/>
+            <text class="bar-label2" x="${m*barW+barW/2+17}" y="${svgH-h-marginY-5}">
+              ${th}:${pad2(tm)}
+            </text>
+            <text class="bar-x-label" x="${m*barW+barW/2+17}" y="${svgH-2}">
+              ${["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"][m]}
+            </text>
+          </g>
+        `;
+      }
+      svg+="</svg>";
+      document.getElementById("barchart-month").innerHTML=svg+"<div style='color:#899;font-size:13px;'>Barre verdi = ≥ quorum mensile | rosse = < quorum | Valorizzazione ferie/festivi: 8h24min</div>";
+      // Tabella mese
+      let html = `<tr>
+        <th>Mese</th><th>Ore totali</th><th>Quorum</th><th>Scostamento</th><th class="label-ferie">Ferie</th><th class="label-festivo">Festivi</th>
+      </tr>`;
+      for(let m=0;m<12;m++){
+        let nSett = settimanePerMese[m];
+        let quorumMese = 2520*nSett;
+        let [th,tm]=min2hm(mesi[m]), [qh,qm]=min2hm(quorumMese);
+        let disc=mesi[m]-quorumMese, [dh,dm]=min2hm(Math.abs(disc));
+        html+=`<tr>
+          <td>${["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"][m]}</td>
+          <td>${th}:${pad2(tm)}</td>
+          <td>${qh}:${pad2(qm)}</td>
+          <td class="${disc>=0?'ok':'ko'}">${disc>=0?'+':'-'}${dh}:${pad2(dm)}</td>
+          <td>${ferieC[m]||""}</td>
+          <td>${festiviC[m]||""}</td>
+        </tr>`;
+      }
+      document.getElementById("tabella-mese").innerHTML=html;
+    }
+    function giorniInMese(y,m){
+      return new Date(y,m+1,0).getDate();
+    }
+    // ==== INIT ====
+    aggiornaSettimane(2025);
+    aggiornaMesi(2025);
+  </script>
+</body>
+</html>
