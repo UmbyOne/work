@@ -103,7 +103,7 @@
       background:rgba(140,146,200,0.18);z-index:96;
       display:flex;align-items:center;justify-content:center; }
     .modal-dialog {
-      background:#fff;padding:21px 23px 16px 23px; 
+      background:#fff;padding:21px 23px 16px 23px;
       border-radius:14px;min-width:210px;max-width:95vw;box-shadow:0 9px 44px #3332;
       outline:none;
     }
@@ -134,7 +134,7 @@
     @media print {
       body, html { background:#fff !important; }
       .footer, .modal-backdrop, .sw-btn-row, .pie-chart, .subtitle,
-      .calendar-wrap, .min-hint2, .giornate-list, .tab-quorum-title, #orari-card, #sw-card, #calend-card, .card:not(.dashboard-card), .chart-bar, .dashboard-legend, .dashboard-bar, .dashboard-bar-voci, .dashboard-pie, #dashboard-bar, #dashboard-bar-voci, #dashboard-pie, #quorum-tabelle table + table {
+      .calendar-wrap, .min-hint2, .giornate-list, .tab-quorum-title, #orari-card, #sw-card, #calend-card, .card:not(.dashboard-card), .chart-bar, .dashboard-legend, .dashboard-bar, .dashboard-bar-voci, .dashboard-pie, #dashboard-bar, #dashboard-bar-voci, #dashboard-pie, #quorum-tabelle table + table, .data-actions {
         display: none !important;
       }
       .dashboard-card, #dashboard-print-report {
@@ -181,6 +181,31 @@
     }
     @media print {
       #dashboard-print-report {display:block !important;}
+    }
+     /* Stili per i nuovi pulsanti Import/Export */
+    .data-actions {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .data-actions button {
+        background: #E0E0E0; /* Colore neutro */
+        color: #333;
+        border: 1px solid #BBB;
+        font-weight: 500;
+        padding: 6px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background .12s;
+    }
+    .data-actions button:hover {
+        background: #D5D5D5;
+    }
+    /* Nasconde l'input file nativo */
+    .data-actions input[type="file"] {
+        display: none;
     }
   </style>
 </head>
@@ -229,9 +254,15 @@
         <div class="chart-bar" id="dashboard-bar"></div>
         <div class="chart-bar" id="dashboard-bar-voci"></div>
         <div id="dashboard-pie"></div>
-        <!-- Quorum Tabella AGGIUNTA -->
+        <!-- Quorum Tabella -->
         <div class="tab-quorum-title" style="margin:15px 0 4px 0;">Quorum 42h Settimanali — Dettaglio settimane/mese</div>
         <div id="quorum-tabelle"></div>
+         <!-- Nuovi pulsanti Import/Export -->
+        <div class="data-actions">
+             <button type="button" onclick="document.getElementById('fileInput').click()">📂 Carica Dati</button>
+             <input type="file" id="fileInput" accept=".json" onchange="caricaDati(event)">
+             <button type="button" onclick="esportaDati()">💾 Esporta Dati</button>
+         </div>
         <!-- Report PRINT ONLY -->
         <div id="dashboard-print-report"></div>
       </div>
@@ -253,7 +284,7 @@
         <div class="giornate-list" id="giornate-list"></div>
       </div>
     </div>
-    <div class="footer">© 2025 Umby@Work — Grafici SVG, nessuna dipendenza esterna</div>
+    <div class="footer">© 2025 Umby@WWork — Grafici SVG, nessuna dipendenza esterna</div>
   </div>
   <!-- MODALE per tipi giornata -->
   <div id="modal-backdrop" class="modal-backdrop" style="display:none">
@@ -273,10 +304,88 @@
     </div>
   </div>
   <script>
-  // ... TUTTO IL JS INVARIATO ... (copia quello del codice fornito nella tua versione sopra)
-  // Per compattezza qui mostro solo la parte in più (stampa report):
-  // (Ma va lasciato tutto il blocco JS tua versione)
-  
+  // =============== MODELLO DATI ===================
+  const FESTIVI_PRESET = [
+    "2025-01-01", "2025-01-06", "2025-03-19", "2025-04-18", "2025-04-21", "2025-05-01",
+    "2025-05-29", "2025-06-09", "2025-06-19", "2025-08-01", "2025-08-15",
+    "2025-11-01", "2025-12-08", "2025-12-25", "2025-12-26"
+  ];
+  const NOMI_MESI =  ["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"];
+  const NOMI_GIORNI = ["Domenica","Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato"];
+  const NOMI_GIORNI_BREVI = ["Lun","Mar","Mer","Gio","Ven"];
+
+  // Funzioni di salvataggio/caricamento da localStorage (usate anche per l'export/import)
+  function defaultState(){
+    let annoPredef = 2025;
+    let festivi = {};
+    for(let d of FESTIVI_PRESET) festivi[d] = true;
+    return {
+      year: annoPredef,
+      ferie: {},
+      festivi: festivi,
+      malattia: {},
+      permesso: {},
+      lavoro: {},
+      swPrefs: [1,3,4], // Lunedì, Mercoledì, Giovedì
+    };
+  }
+  function salvaState(state){ localStorage.setItem("umbyWorkData",JSON.stringify(state)); } // Usato anche per export
+  function caricaState(){ // Usato anche per import (prima di sovrascrivere lo state globale)
+    try{ const t=JSON.parse(localStorage.getItem("umbyWorkData")); return t||defaultState(); }catch{return defaultState();}
+  }
+
+  let state = caricaState(); // Inizializza lo stato all'avvio
+
+  // ========= FUNZIONI EXPORT/IMPORT ===========
+  function esportaDati() {
+    const dataToSave = JSON.stringify(state, null, 2); // Indenta per leggibilità
+    const blob = new Blob([dataToSave], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    // Nome del file esportato - usa l'anno corrente
+    a.download = `umbywork_data_${state.year}.json`;
+    document.body.appendChild(a); // Necessario per Firefox
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url); // Pulisce l'URL temporaneo
+  }
+
+  function caricaDati(event) {
+    const file = event.target.files[0];
+    if (!file) {
+      return; // Nessun file selezionato
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const loadedState = JSON.parse(e.target.result);
+        // Aggiungi una validazione base per evitare caricamenti casuali
+        if (typeof loadedState === 'object' && loadedState !== null && loadedState.hasOwnProperty('year') && loadedState.hasOwnProperty('lavoro')) {
+            state = loadedState; // Sostituisci lo stato globale
+            salvaState(state); // Salva nel local storage anche dopo l'import
+            document.getElementById("calend-anno").value = state.year; // Aggiorna picker anno
+            aggiornaAll(); // Aggiorna l'interfaccia
+            alert("Dati caricati con successo!");
+        } else {
+            alert("Errore: Il file JSON non sembra contenere dati validi per l'applicazione.");
+        }
+      } catch (error) {
+        alert("Errore durante il parsing del file JSON: " + error.message);
+        console.error("Errore di caricamento dati:", error);
+      }
+      // Resetta l'input file per permettere di caricare lo stesso file di nuovo se necessario
+      event.target.value = '';
+    };
+    reader.onerror = (error) => {
+      alert("Errore durante la lettura del file.");
+      console.error("Errore lettura file:", error);
+    };
+
+    reader.readAsText(file); // Leggi il file come testo
+  }
+
   // ========== FUNZIONE STAMPA REPORT ===========
   function stampaReport() {
     // Genera HTML del report basato sulle stesse stats e tabelle della dashboard
@@ -302,7 +411,7 @@
     // Componi il report print
     let html = `
       <div style="text-align:center;margin-bottom:12px;"><h2>Report Annuale ${year} — Umby@Work2025</h2></div>
-      <ul style="font-size:1.18em;margin-bottom:14px;line-height:1.75;">
+      <ul style="font-size:1.18em;margin-bottom:14px;line-height:1.75;padding-left:20px;">
         <li><b>Ore totali lavorate:</b> <span style="color:#317F44;font-weight:600;">${h}:${pad2(m)}</span></li>
         <li><b>Ferie usate:</b> ${ferie} — <b>Festivi:</b> ${festivi} — <b>Malattia:</b> ${malattia} — <b>Permesso:</b> ${permesso}</li>
         <li><b>Smartworking effettuati:</b> ${swEff.eff} / ${swTot} (max)</li>
@@ -319,43 +428,11 @@
     // Forza CSS report e avvia stampa
     setTimeout(()=>window.print(),100);
   }
-  // Incolla qui tutto il JS fornito, incluso stampaReport sopra.
-  // Per brevità non lo duplico: lascialo invariato, tranne questa funzione nuova.
-  // ---------------
-  // Dal codice originale fornito, qui di seguito:
-  // [INCOLLA IL JAVASCRIPT DEL CODICE TUO ORIGINALE QUI...]
 
-  // =============== MODELLO DATI ===================
-  const FESTIVI_PRESET = [
-    "2025-01-01", "2025-01-06", "2025-03-19", "2025-04-18", "2025-04-21", "2025-05-01",
-    "2025-05-29", "2025-06-09", "2025-06-19", "2025-08-01", "2025-08-15",
-    "2025-11-01", "2025-12-08", "2025-12-25", "2025-12-26"
-  ];
-  const NOMI_MESI =  ["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"];
-  const NOMI_GIORNI = ["Domenica","Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato"];
-  const NOMI_GIORNI_BREVI = ["Lun","Mar","Mer","Gio","Ven"];
-  function defaultState(){
-    let annoPredef = 2025;
-    let festivi = {};
-    for(let d of FESTIVI_PRESET) festivi[d] = true;
-    return {
-      year: annoPredef,
-      ferie: {},
-      festivi: festivi,
-      malattia: {},
-      permesso: {},
-      lavoro: {},
-      swPrefs: [1,3,4], // Lunedì, Mercoledì, Giovedì
-    };
-  }
-  function salvaState(state){ localStorage.setItem("swTicinoApp",JSON.stringify(state)); }
-  function caricaState(){
-    try{ const t=JSON.parse(localStorage.getItem("swTicinoApp")); return t||defaultState(); }catch{return defaultState();}
-  }
-  let state = caricaState();
   // ========= INIZIALIZZAZIONE E RENDER PRINCIPALE ==============
   function aggiornaAll(){
-    salvaState(state);
+    salvaState(state); // Salva lo stato nel local storage ad ogni aggiornamento
+    document.getElementById("calend-anno").value = state.year; // Assicura che il picker anno sia corretto
     disegnaSmartWorking();
     disegnaCalendario();
     aggiornaBarChart();
@@ -363,33 +440,47 @@
     aggiornaStats();
     aggiornaListaGiornate();
     aggiornaBarChartVoci();
+    // Aggiorna il riepilogo orari per la data corrente del picker
     aggiornaOrariRiepilogo();
     aggiornaQuorumTabelle();
   }
+
   window.onload=()=>{
     // Picker anno
     const sel = document.getElementById("calend-anno");
     let y = (new Date()).getFullYear();
-    for(let i=y-2; i<=y+1; i++) {
+    // Ri-popola le opzioni dell'anno (necessario se si carica uno stato di un altro anno)
+    sel.innerHTML = ""; // Pulisce le opzioni esistenti
+    for(let i=y-2; i<=y+1; i++) { // Mantiene un range flessibile
       let opt = document.createElement("option");
       opt.value = i;
       opt.text = i;
       sel.appendChild(opt);
     }
+    // Assicura che l'anno corrente dello state sia selezionato
+    if(!sel.querySelector(`option[value="${state.year}"]`)) {
+        // Se l'anno dello state non è nel range di default, aggiungilo
+        let opt = document.createElement("option");
+        opt.value = state.year;
+        opt.text = state.year;
+        sel.appendChild(opt);
+    }
     sel.value = state.year;
+
     sel.onchange = function(){
       state.year = Number(sel.value);
       aggiornaAll();
     };
-    document.getElementById("orari-data").value = oggiISO();
+    // Imposta la data predefinita nel picker orari se non già impostata
+    if (!document.getElementById("orari-data").value) {
+      document.getElementById("orari-data").value = oggiISO();
+    }
     document.getElementById("orari-data").onchange = aggiornaOrariRiepilogo;
     document.getElementById("orari-form").onsubmit = salvaOrariGiorno;
-    aggiornaAll();
-  };
-  // (il resto del JS fornito è invariato, come nella consegna precedente!)
-  // ===== continua incollando TUTTO IL JS sopra, senza modifiche, tranne stampaReport() =====
 
-  // ... codice invariato ...
+    aggiornaAll(); // Esegue il primo render con lo stato caricato
+  };
+
   // === Ferie/Festivi/Permessi ===
   function giorniInMese(y,m){return new Date(y,m+1,0).getDate();}
   function pad2(n){return n<10?"0"+n:""+n;}
@@ -445,7 +536,7 @@
       for(let d=1;d<=giorniMese;d++){
         let iso = `${state.year}-${pad2(mese+1)}-${pad2(d)}`;
         let tipoG = tipoGiornata(iso);
-        html+=`<div class='calendar-day ${tipoG}' tabindex=0 title='${iso}' aria-label='${tipoG||"Giorno"}' 
+        html+=`<div class='calendar-day ${tipoG}' tabindex=0 title='${iso}' aria-label='${tipoG||"Giorno"}'
           onclick='apriModale("${iso}")'>${d}</div>`;
       }
       html+="</div>";
@@ -522,6 +613,12 @@
        Ore straordinarie: <b style='color:${minDisp>=0?"#279933":"#c23"}'>
        ${diffSign}${hdiff}:${pad2(mdiff)}</b>
        <br/><span class='min-hint'>Target giornaliero: 8h 24m</span>`;
+
+    // Popola i campi input con gli orari salvati per la data selezionata
+    document.getElementById("in1").value = orari.in1 || '';
+    document.getElementById("out1").value = orari.out1 || '';
+    document.getElementById("in2").value = orari.in2 || '';
+    document.getElementById("out2").value = orari.out2 || '';
   }
   // ============ SMARTWORKING ============
   function getSwEffettuati(){
@@ -529,14 +626,16 @@
     Object.keys(state.lavoro).forEach(dt=>{
       if(!dt.startsWith(state.year)) return;
       let d=new Date(dt+"T00:00:00");
-      let wd = d.getDay();
-      let week = getWeekNumber(d);
-      if(state.swPrefs.includes(wd) && minutiLavorati(state.lavoro[dt])>0){
+      let wd = d.getDay(); // getDay() ritorna 0=Dom, 1=Lun ... 6=Sab
+      // Converti in 1=Lun ... 5=Ven (per confronto con swPrefs)
+      let wdISO = wd === 0 ? 7 : wd;
+      if(state.swPrefs.includes(wdISO) && minutiLavorati(state.lavoro[dt])>0){
+        let week = getWeekNumber(d);
         byWeek[week]=(byWeek[week]||0)+1;
       }
     });
     let settimane = getSettimaneLavorate();
-    let eff = Object.values(byWeek).reduce((a,v)=>a+Math.min(3,v),0);
+    let eff = Object.values(byWeek).reduce((a,v)=>a+Math.min(3,v),0); // Max 3 SW per settimana
     return { eff, max:settimane*3 };
   }
   function getSettimaneLavorate(){
@@ -548,16 +647,21 @@
     });
     return Object.keys(weeks).length||1;
   }
+  // Calcola il numero della settimana secondo ISO 8601
   function getWeekNumber(d){
+    // Copy date so don't modify original
     d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-    let dayNum = d.getUTCDay()||7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    // Set to nearest Thursday: current date + 4 - current day number
+    // Monday is 1
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+    // Get first day of year
     let yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-    return Math.ceil((((d - yearStart)/86400000)+1)/7);
+    // Calculate full weeks to nearest Thursday
+    let weekNo = Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+    return weekNo;
   }
   // ========== DASHBOARD GRAFICI E TABLE ==========
   function aggiornaBarChart(){
-    // Rimane come nella versione precedente, ora integrato con quorum
     const node = document.getElementById("dashboard-bar");
     let arr = Array(12).fill(0).map((_,m)=>({
       mese: m,
@@ -565,21 +669,20 @@
       quorum: 0,
       scostamento: 0
     }));
-    let feriePerMese = Array(12).fill(0), festiviPerMese=Array(12).fill(0);
-    // Ferie e festivi
-    Object.keys(state.ferie).forEach(dt=>{
-      if(dt.startsWith(state.year)){
-        let mese = Number(dt.split("-")[1])-1;
-        arr[mese].totMin += 504;
-        feriePerMese[mese]++;
-      }
-    });
-    Object.keys(state.festivi).forEach(dt=>{
-      if(dt.startsWith(state.year)){
-        let mese = Number(dt.split("-")[1])-1;
-        arr[mese].totMin += 504;
-        festiviPerMese[mese]++;
-      }
+    // Considera anche ferie e festivi per il totale lavorato nel grafico a barre mensile
+    let tipiSpeciali = ["ferie", "festivi", "malattia", "permesso"];
+    tipiSpeciali.forEach(tipo => {
+        Object.keys(state[tipo]).forEach(dt => {
+             if(dt.startsWith(state.year)){
+                 let mese = Number(dt.split("-")[1])-1;
+                 // Assumiamo 8h 24min (504 min) per ferie/festivi ai fini del quorum e del grafico
+                 // Malattia e Permesso non contano per il quorum di lavoro, ma potremmo volerli vedere nel totale?
+                 // Per ora, contiamo solo Ferie e Festivi come se fossero lavorati per il totale del grafico.
+                 if (tipo === "ferie" || tipo === "festivo") {
+                    arr[mese].totMin += 504;
+                 }
+             }
+        });
     });
     Object.keys(state.lavoro).forEach(dt=>{
       if(dt.startsWith(state.year)){
@@ -595,25 +698,43 @@
     }
     // Bar chart HTML
     let svgW = 350, svgH = 80, marginY = 16, barW = 25, barSp = 7;
-    let maxTot = Math.max(...arr.map(x=>x.totMin), ...arr.map(x=>x.quorum), 2520*5);
+     // Trova il massimo valore tra totMin e quorum su tutti i mesi per scalare l'asse Y
+    let maxVal = Math.max(...arr.map(x=>x.totMin), ...arr.map(x=>x.quorum));
+     // Aggiungi un po' di padding extra per non tagliare le label
+    maxVal = maxVal * 1.2; // +20%
+    if(maxVal < 2520) maxVal = 2520; // Assicura una scala minima visibile
+
     let svg = `<svg width="${svgW}" height="${svgH}">`;
     for(let i=0;i<12;i++){
-      let h = (arr[i].totMin/maxTot)*(svgH-2*marginY);
-      let cls = arr[i].totMin >= arr[i].quorum ? "ok":"ko";
+      // Altezza della barra in proporzione al maxVal
+      let h = (arr[i].totMin / maxVal) * (svgH - 2 * marginY);
+      // Posizione Y: svgH - h - margine superiore
+      let y = svgH - h - marginY;
+      // Colore in base allo scostamento rispetto al quorum
+      let barColor = arr[i].totMin >= arr[i].quorum ? '#5FB067' : '#E17055';
       let [th,tm]=min2hm(arr[i].totMin);
+
       svg+=`
         <g>
-          <rect x="${i*(barW+barSp)+16}" y="${svgH-h-marginY}" width="${barW}" height="${h}"
-            style="fill:${arr[i].totMin>=arr[i].quorum?'#5FB067':'#E17055'}" rx="5"></rect>
-          <text class="bar-label2" x="${i*(barW+barSp)+barW/2+16}" y="${svgH-h-marginY-5}">${th}:${pad2(tm)}</text>
+          <rect x="${i*(barW+barSp)+16}" y="${y}" width="${barW}" height="${h}"
+            style="fill:${barColor}" rx="5"></rect>
+          <text class="bar-label2" x="${i*(barW+barSp)+barW/2+16}" y="${y-5}">${th}:${pad2(tm)}</text>
           <text class="bar-x-label" x="${i*(barW+barSp)+barW/2+16}" y="${svgH-2}">
             ${NOMI_MESI[i]}
           </text>
         </g>
       `;
     }
+     // Disegna la linea del quorum (rossa, orizzontale)
+    let quorumLineY = svgH - (arr[0].quorum / maxVal) * (svgH - 2 * marginY) - marginY; // Assumiamo quorum uguale per tutti i mesi a fini della linea
+    svg += `<line x1="16" y1="${quorumLineY}" x2="${svgW-16}" y2="${quorumLineY}" stroke="#c23" stroke-width="1" stroke-dasharray="3,3"/>`;
+     // Aggiungi label per la linea del quorum
+    let [qh,qm] = min2hm(arr[0].quorum); // Quorum di un mese tipico
+    svg += `<text x="${svgW - 10}" y="${quorumLineY - 3}" text-anchor="end" fill="#c23" style="font-size:10px;">Quorum ${qh}:${pad2(qm)}</text>`;
+
+
     svg+="</svg>";
-    node.innerHTML=svg+`<div class='dashboard-legend'>Barre verdi = ≥ quorum mensile | rosse = < quorum | Ferie/festivi conteggiati: 8h24min</div>`;
+    node.innerHTML=svg+`<div class='dashboard-legend'>Barre verdi = ≥ quorum mensile | rosse = < quorum | Ferie/festivi conteggiati come 8h24min</div>`;
   }
   function aggiornaBarChartVoci(){
     const node = document.getElementById("dashboard-bar-voci");
@@ -646,7 +767,7 @@
     let swPie = document.getElementById("sw-pie");
     let swTot = swEff.max;
     let pie = genPieChart([swEff.eff,Math.max(swTot-swEff.eff,0)],[ "#4A90E2","#EAEEFA"],
-      [`Effettuati: ${swEff.eff}`,"Max settimana: "+swTot]);
+      [`Effettuati: ${swEff.eff}`,`Max ${getSettimaneLavorate()} sett: ${swTot}`]); // Label più chiara
     swPie.innerHTML=pie;
     // Festivi/ferie/malattia/permessi Pie (dashboard)
     let ferie = Object.keys(state.ferie).filter(d=>d.startsWith(state.year)).length;
@@ -696,8 +817,8 @@
     let swTot = swEff.max;
     let effTxt = `<b>${h}:${pad2(m)}</b>`;
     document.getElementById("dashboard-stats").innerHTML=
-     `Ore totali lavorate: <span style="color:#385;">${effTxt}</span>
-      <br/><span class='dashboard-legend'>Target annuale (248gg): <b>${Math.round(8.4*248)}h</b></span>
+     `Ore totali lavorate (netto): <span style="color:#385;">${effTxt}</span>
+      <br/><span class='dashboard-legend'>Target annuale (248gg @8h24m): <b>${Math.round(8.4*248)}h</b></span>
       <br/><span class='dashboard-legend'>Ferie usate: <b>${ferie}</b> / Festivi: <b>${festivi}</b> / Malattia: <b>${malattia}</b> / Permesso: <b>${permesso}</b>
       <br/>Smartworking effettuati: <b>${swEff.eff} / ${swTot}</b></span>`;
   }
@@ -710,32 +831,41 @@
     Object.entries(weekMap).forEach(([week,days])=>{
       let totMin=0, ferieC=0, festiviC=0, giorniLav=0;
       days.forEach(dt=>{
-        if(state.ferie[dt]){ totMin+=504; ferieC++; }
-        else if(state.festivi[dt]){ totMin+=504; festiviC++; }
+         // Per il quorum, contano solo le ore effettivamente lavorate + ferie/festivi come ore lavorate
+        if(state.ferie[dt]){ totMin+=504; ferieC++; } // 8h24m = 504 min
+        else if(state.festivi[dt]){ totMin+=504; festiviC++; } // 8h24m = 504 min
         else if(state.lavoro[dt]){ totMin+=minutiLavorati(state.lavoro[dt]); giorniLav++; }
+        // Malattia e Permesso non contribuiscono al quorum settimanale/mensile
       });
-      arrW.push({week, wlabel:"W"+week, totMin, quorum:2520, scostamento:totMin-2520, ferieC, festiviC, giorniLav});
+      arrW.push({week, wlabel:"W"+week, totMin, quorum:2520, scostamento:totMin-2520, ferieC, festiviC, giorniLav}); // 42h/sett = 2520 min/sett
     });
     // 2 - Quorum per mese
     let arrM = [];
     for(let m=0;m<12;m++){
       let giorniMese = giorniInMese(state.year,m);
-      let totMin=0, ferieC=0, festiviC=0, giorniLav=0, weeksCur=[];
+      let totMin=0, ferieC=0, festiviC=0, giorniLav=0, weeksCurMap={}; // Usa una mappa per evitare duplicati
       for(let d=1;d<=giorniMese;d++){
         let iso = `${state.year}-${pad2(m+1)}-${pad2(d)}`;
-        let week = getWeekNumber(new Date(iso+"T00:00:00"));
-        if(!weeksCur.includes(week)) weeksCur.push(week);
+        let dayOfWeek = (new Date(iso+"T00:00:00").getDay() + 6) % 7; // 0=Lun ... 6=Dom
+         // Conta le settimane solo per i giorni lavorativi (Lun-Ven) che ricadono nel mese
+         if (dayOfWeek >= 0 && dayOfWeek <= 4) { // Lunedì a Venerdì
+             let week = getWeekNumber(new Date(iso+"T00:00:00"));
+             weeksCurMap[week] = true;
+         }
+
         if(state.ferie[iso]){ totMin+=504; ferieC++; }
         else if(state.festivi[iso]){ totMin+=504; festiviC++; }
         else if(state.lavoro[iso]){ totMin+=minutiLavorati(state.lavoro[iso]); giorniLav++; }
       }
-      let quorum = weeksCur.length*2520;
+      let settimaneNelMeseContate = Object.keys(weeksCurMap).length;
+      let quorum = settimaneNelMeseContate * 2520; // 42h/sett = 2520 min/sett
       arrM.push({mese:NOMI_MESI[m], totMin, quorum, scostamento:totMin-quorum, ferieC, festiviC, giorniLav});
     }
     // 3 - Output HTML
     let htmlW = `<table class="quorum-table">
-      <tr><th>Sett.</th><th>Ore totali</th><th>Quorum</th><th>Scostamento</th><th class="label-ferie">Ferie</th><th class="label-festivo">Festivi</th></tr>`;
-    arrW.forEach(w=>{
+      <tr><th>Sett.</th><th>Ore totali</th><th>Quorum (42h)</th><th>Scostamento</th><th class="label-ferie">Ferie</th><th class="label-festivo">Festivi</th></tr>`;
+    // Filtra le settimane con dati (totMin > 0) o con ferie/festivi segnati
+    arrW.filter(w => w.totMin > 0 || w.ferieC > 0 || w.festiviC > 0).forEach(w=>{
       let [th,tm]=min2hm(w.totMin), [qh,qm]=min2hm(w.quorum);
       let disc=w.scostamento, [dh,dm]=min2hm(Math.abs(disc));
       htmlW+=`<tr>
@@ -747,9 +877,15 @@
         <td>${w.festiviC||""}</td>
         </tr>`;
     });
+     if (htmlW === `<table class="quorum-table">
+      <tr><th>Sett.</th><th>Ore totali</th><th>Quorum (42h)</th><th>Scostamento</th><th class="label-ferie">Ferie</th><th class="label-festivo">Festivi</th></tr>`) {
+         htmlW += `<tr><td colspan="6" style="text-align:center;color:#888;font-size:13px;">Nessun dato registrato per le settimane.</td></tr>`;
+     }
     htmlW+="</table>";
+
     let htmlM = `<table class="quorum-table" style="margin-top:10px">
-      <tr><th>Mese</th><th>Ore totali</th><th>Quorum</th><th>Scostamento</th><th class="label-ferie">Ferie</th><th class="label-festivo">Festivi</th></tr>`;
+      <tr><th>Mese</th><th>Ore totali</th><th>Quorum (42h)</th><th>Scostamento</th><th class="label-ferie">Ferie</th><th class="label-festivo">Festivi</th></tr>`;
+     // Mostra tutti i mesi, anche senza dati, per completezza annuale
     arrM.forEach(m=>{
       let [th,tm]=min2hm(m.totMin), [qh,qm]=min2hm(m.quorum);
       let disc=m.scostamento, [dh,dm]=min2hm(Math.abs(disc));
@@ -766,34 +902,61 @@
     document.getElementById("quorum-tabelle").innerHTML=htmlW+htmlM;
   }
   function getWeeksInMonth(year,month){
-    let weeks = [];
+    let weeks = {};
     let giorniMese = giorniInMese(year,month);
     for(let d=1;d<=giorniMese;d++){
       let iso = `${year}-${pad2(month+1)}-${pad2(d)}`;
-      let week = getWeekNumber(new Date(iso+"T00:00:00"));
-      if(!weeks.includes(week)) weeks.push(week);
+      let dayOfWeek = (new Date(iso+"T00:00:00").getDay() + 6) % 7; // 0=Lun ... 6=Dom
+      // Contiamo le settimane che hanno almeno un giorno lavorativo (Lun-Ven) nel mese
+      if (dayOfWeek >= 0 && dayOfWeek <= 4) { // Lunedì a Venerdì
+         let week = getWeekNumber(new Date(iso+"T00:00:00"));
+         weeks[week] = true;
+      }
     }
-    return weeks.length;
+    return Object.keys(weeks).length;
   }
   function calcWeeks(year){
     let weeks = {};
-    let d=new Date(`${year}-01-01`);
-    for(let i=0;i<375;i++){
-      let y=d.getFullYear();
-      if(y>year) break;
-      let iso = `${y}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-      let week = getWeekNumber(d);
-      if(!weeks[week]) weeks[week]=[];
-      weeks[week].push(iso);
-      d.setDate(d.getDate()+1);
+    let d=new Date(`${year}-01-01T00:00:00`); // Usa T00:00:00 per evitare problemi di fuso orario
+    let endOfYear = new Date(`${year}-12-31T00:00:00`);
+    // Itera per tutto l'anno, includendo i giorni che potrebbero cadere nella prima/ultima settimana dell'anno adiacente
+    // Estendi il loop di qualche giorno per essere sicuro di coprire le settimane a cavallo
+    let startDate = new Date(`${year-1}-12-20T00:00:00`);
+    let endDate = new Date(`${year+1}-01-15T00:00:00`);
+    let current = startDate;
+
+    while(current <= endDate){
+      let y=current.getFullYear();
+      let iso = `${y}-${pad2(current.getMonth()+1)}-${pad2(current.getDate())}`;
+      let week = getWeekNumber(current);
+       // Includi la data solo se l'anno corrisponde all'anno per cui stiamo calcolando O se è una data
+       // a cavallo dell'anno ma la settimana appartiene in parte all'anno corrente.
+       // Questo è un po' complesso con ISO 8601. Una semplificazione è includere i giorni di qualche settimana a cavallo.
+       // Per questo scopo (visualizzazione settimane) includiamo tutti i giorni nelle settimane che toccano l'anno.
+       // La logica di conteggio per la dashboard filtrerà comunque per anno esatto.
+       // Simplifichiamo: includiamo solo i giorni dell'anno richiesto per la mappa settimana->giorni
+       if (y === year) {
+            if(!weeks[week]) weeks[week]=[];
+            weeks[week].push(iso);
+       }
+      current.setDate(current.getDate()+1);
     }
-    return weeks;
+     // Rimuovi settimane vuote o non rilevanti (quelle che non hanno giorni dell'anno 'year')
+    let finalWeeks = {};
+    Object.keys(weeks).forEach(week => {
+        if (weeks[week].some(iso => iso.startsWith(`${year}-`))) {
+            finalWeeks[week] = weeks[week].filter(iso => iso.startsWith(`${year}-`));
+        }
+    });
+
+
+    return finalWeeks;
   }
   // ========== SMARTWORKING BUTTON RENDER ==========
   function disegnaSmartWorking(){
     let row = document.getElementById("sw-row");
     row.innerHTML = "";
-    for(let i=1; i<=5; i++){
+    for(let i=1; i<=5; i++){ // 1=Lun, ..., 5=Ven
       let btn = document.createElement("button");
       btn.type="button";
       btn.textContent = NOMI_GIORNI_BREVI[i-1];
@@ -804,12 +967,19 @@
   }
   function toggleSwPref(idx){
     if(state.swPrefs.includes(idx)){
-      if(state.swPrefs.length>1) state.swPrefs = state.swPrefs.filter(x=>x!==idx);
+      if(state.swPrefs.length>1) { // Non permettere di rimuovere l'ultimo
+         state.swPrefs = state.swPrefs.filter(x=>x!==idx);
+      }
     } else {
-      if(state.swPrefs.length<3) state.swPrefs.push(idx);
+      if(state.swPrefs.length<3) { // Max 3 preferenze
+         state.swPrefs.push(idx);
+      } else {
+         alert("Puoi selezionare un massimo di 3 giorni preferiti per lo smartworking.");
+      }
     }
     aggiornaAll();
   }
+
   </script>
 </body>
 </html>
