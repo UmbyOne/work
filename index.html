@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Umby@Work2025 - Caricamento da GitHub</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4A90E2;
+      --accent: #F5A623;
+      --sw-bg: #e6f5fd;
+      --festivo-bg: #DADEFA;
+      --ferie-bg: #FFF9D6;
+      --malattia-bg: #FFD9D9;
+      --permesso-bg: #D1FDE5;
+      --border: #e2e6ef;
+      --text: #233;
+      --muted: #899;
+      --ko: #E17055;
+      --ok: #5FB067;
+    }
+    html, body {margin:0; padding:0; background:#fafbfc;}
+    body {font-family:'Roboto',sans-serif; color:var(--text);}
+    h1,h2,h3,h4{margin-top:0;}
+    h1 {font-size:2rem;}
+    h2 {font-size:1.25rem;}
+    h4 {font-size:1rem;}
+    .container {
+      max-width:1180px; margin:24px auto 32px auto; padding:8px;
+    }
+    .app-title {text-align:center;font-weight:700;}
+    .subtitle {color:var(--muted); font-size:0.95rem;text-align:center;margin-bottom:14px;}
+    .layout {
+      display:grid; gap:18px; margin-top:12px;
+      grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width: 900px){
+      .layout {grid-template-columns:1fr;}
+      .dashboard-card {order:3;}
+      .calend-card {order:4;}
+    }
+    @media (max-width: 600px){
+      .container{padding:0;}
+      .layout{gap:10px;}
+      .card{padding:13px;}
+      h1{font-size:1.22rem}
+    }
+    .card {
+      background-color:#fff; border-radius:16px; box-shadow:0 4px 24px #0001;
+      padding:22px 22px 17px 22px;
+    }
+    label {font-weight:500;}
+    input,select,button {
+      font-family:inherit; font-size:1rem; border-radius:6px; border:1px solid #ccd; padding:5px 9px;
+      margin-right:7px; margin-bottom:7px; outline:none; transition:border .15s;
+    }
+    input:focus,select:focus{border-color:var(--primary);}
+    button {
+      background:var(--primary); color:#fff; font-weight:500;
+      border:none; border-radius:8px; cursor:pointer; transition:background .12s;
+    }
+    button:active {background:#2560a7;}
+    .sw-btn-row {display:flex;gap:7px;margin-bottom:8px;flex-wrap:wrap;}
+    .sw-btn-row button {
+      min-width:52px; padding:0.2em 0.9em;border-radius:7px;letter-spacing:.5px;
+      background:#EAEEFA; color:#222; font-weight:600; border-bottom:2px solid transparent;
+      border-top:1px solid #ddd;
+    }
+    .sw-btn-row button.selected {
+      background:var(--primary); color:#fff; border-bottom:2.5px solid var(--accent);}
+    .chart-bar {margin-bottom:12px;}
+    .pie-legend {font-size:13px;padding:1px 2px;}
+    .calendar-wrap {
+      display:flex;gap:18px;flex-wrap:wrap;
+    }
+    .month-cal {margin-bottom:12px;}
+    .calendar-days {display:grid;grid-template-columns:repeat(7,2em);gap:2px;}
+    .calendar-day, .calendar-head {
+      text-align:center; font-size:13.5px;
+      padding:0.42em 0;
+      border-radius:7px;
+      user-select:none;
+    }
+    .calendar-head {color:#899;font-size:12px;font-weight:600;}
+    .calendar-day {background:none; cursor:pointer;}
+    .calendar-day.selected {box-shadow:0 0 0 2px var(--primary);}
+    .ferie {background:var(--ferie-bg);}
+    .festivo {background:var(--festivo-bg);}
+    .malattia {background:var(--malattia-bg);}
+    .permesso {background:var(--permesso-bg);}
+    .label-ferie{color:#db7c01;font-weight:500;}
+    .label-festivo{color:#4473b2;}
+    .label-malattia{color:#b24141;}
+    .label-permesso{color:#1d7165;}
+    .giornate-list span {
+      font-size:0.96em; margin-right:9px; display:inline-block;padding:2px 7px;border-radius:4px;
+    }
+    .min-hint{color:#A59;font-size:0.96em;}
+    .pie-chart svg{background:#f7faff;border-radius:24px;}
+    .modal-backdrop {
+      position:fixed;left:0;top:0;width:100vw;height:100vh;
+      background:rgba(140,146,200,0.18);z-index:96;
+      display:flex;align-items:center;justify-content:center; }
+    .modal-dialog {
+      background:#fff;padding:21px 23px 16px 23px;
+      border-radius:14px;min-width:210px;max-width:95vw;box-shadow:0 9px 44px #3332;
+      outline:none;
+    }
+    .close-btn {
+      background:var(--accent);color:#fff;padding:2px 11px 2px 11px; border-radius:7px;
+      border:none;font-weight:600;float:right; margin-left:5px;cursor:pointer;font-size:1em;
+    }
+    .giornate-list button {font-size:0.96em; padding:1px 9px;}
+    .footer {text-align:center;margin:17px 0;color:#aaa;font-size:0.98em;}
+    ::-webkit-scrollbar{width:10px;background:#f7f7f7;}
+    ::-webkit-scrollbar-thumb{background:#e5eafd;border-radius:22px;}
+    .sw-btn-row button:focus,.calendar-day:focus {outline:2px solid var(--primary);}
+    .modal-dialog input[type="radio"] {accent-color:var(--primary);}
+    .dashboard-legend {color:var(--muted);font-size:13px;}
+    .dashboard-card{min-height:332px;}
+    .min-hint2{color:#486;}
+    .bar-label{font-size:11.3px; fill: #495;}
+    .bar-label2 {font-size:12px;fill:#333;font-weight:bold;text-anchor:middle;}
+    .bar-x-label {font-size:10.2px;fill:#6a7389;}
+    .quorum-table{width:100%;margin:7px 0 0 0;font-size:14px;border-collapse:collapse;}
+    .quorum-table th,.quorum-table td{border-bottom:1px solid #eee;padding:3px 7px;text-align:right;}
+    .quorum-table th{text-align:center;}
+    .ko{color:var(--ko);font-weight:600;}
+    .ok{color:var(--ok);font-weight:600;}
+    .tab-quorum-title{font-size:1.02em;margin-bottom:4px;color:#365;}
+
+    /* STAMPA */
+    @media print {
+      body, html { background:#fff !important; }
+      .footer, .modal-backdrop, .sw-btn-row, .pie-chart, .subtitle,
+      .calendar-wrap, .min-hint2, .giornate-list, .tab-quorum-title, #orari-card, #sw-card, #calend-card, .card:not(.dashboard-card), .chart-bar, .dashboard-legend, .dashboard-bar, .dashboard-bar-voci, .dashboard-pie, #dashboard-bar, #dashboard-bar-voci, #dashboard-pie, #quorum-tabelle table + table, .data-actions {
+        display: none !important;
+      }
+      .dashboard-card, #dashboard-print-report {
+        page-break-before:auto !important;
+        page-break-after:auto !important;
+        display: block !important;
+        background: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin:0 !important;
+        padding:0 !important;
+        width:100%;
+      }
+      #dashboard-print-report {
+        margin-top: 0 !important;
+        padding: 0 !important;
+      }
+      .print-btn {display:none !important;}
+    }
+    /* Bottone stampa */
+    .print-btn {
+      background: #FFF3B2;
+      color: #444;
+      border: 1px solid #E7D359;
+      font-weight: bold;
+      margin-bottom: 14px;
+      padding: 6px 17px;
+      border-radius: 8px;
+      float: right;
+      font-size: 1rem;
+      transition: background .13s;
+    }
+    .print-btn:hover {
+      background: #ffe899;
+    }
+    /* Stile report stampa */
+    #dashboard-print-report {
+      display:none;
+      margin-top:12px;
+      background:#fff;
+      border-radius:14px;
+      box-shadow:0 4px 24px #0001;
+      padding:18px 24px 16px 24px;
+    }
+    @media print {
+      #dashboard-print-report {display:block !important;}
+    }
+    /* Stili per i nuovi pulsanti Import/Export */
+    .data-actions {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .data-actions button {
+        background: #E0E0E0;
+        color: #333;
+        border: 1px solid #BBB;
+        font-weight: 500;
+        padding: 6px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background .12s;
+    }
+    .data-actions button:hover {
+        background: #D5D5D5;
+    }
+    .data-actions input[type="file"] {
+        display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="app-title">Umby@Work2025</h1>
+    <div class="subtitle">
+      Dashboard grafica · Calendario Interattivo · Nessuna dipendenza esterna
+    </div>
+    <div class="layout">
+      <!-- Sezione Ore Lavorative giornaliere -->
+      <div class="card" id="orari-card">
+        <h2>Ore Lavorative Giorno</h2>
+        <form onsubmit="return false;" id="orari-form" style="margin-bottom:2px;">
+          <label>
+            Data:
+            <input id="orari-data" type="date" required style="margin-right:6px;"/>
+          </label>
+          <br/>
+          <label>Entrata 1 <input id="in1" type="time" step="60" /></label>
+          <label>Uscita 1 <input id="out1" type="time" step="60" /></label>
+          <br/>
+          <label>Entrata 2 <input id="in2" type="time" step="60" /></label>
+          <label>Uscita 2 <input id="out2" type="time" step="60" /></label>
+          <br />
+          <button type="submit" id="orari-save">Salva Giorno</button>
+        </form>
+        <div id="orari-riepilogo" class="min-hint" style="margin-left:2px;"></div>
+      </div>
+      <!-- Smartworking -->
+      <div class="card" id="sw-card">
+        <h2>Giorni Smartworking</h2>
+        <div style="font-size:13px;margin-bottom:9px;">
+          Seleziona i tuoi <b>giorni preferiti</b> per lo smartworking.
+          Max. 3 su 5 (media settimanale).
+        </div>
+        <div class="sw-btn-row" id="sw-row"></div>
+        <div class="dashboard-legend">Statistiche calcolano solo giorni e settimane effettive lavorate.</div>
+        <div class="pie-chart" id="sw-pie" style="margin-top:12px;"></div>
+      </div>
+      <!-- Dashboard con Import/Export -->
+      <div class="card dashboard-card" id="dashboard-card">
+        <button type="button" class="print-btn" onclick="stampaReport()">🖨️ Stampa Report</button>
+        <h2>Dashboard Annuale</h2>
+        <div id="dashboard-stats"></div>
+        <div class="chart-bar" id="dashboard-bar"></div>
+        <div class="chart-bar" id="dashboard-bar-voci"></div>
+        <div id="dashboard-pie"></div>
+         <!-- Pulsanti Import/Export -->
+        <div class="data-actions">
+             <button type="button" onclick="document.getElementById('fileInput').click()">📂 Carica Dati</button>
+             <input type="file" id="fileInput" accept=".json" onchange="caricaDati(event)">
+             <button type="button" onclick="esportaDati()">💾 Esporta Dati</button>
+         </div>
+        <div id="dashboard-print-report"></div>
+      </div>
+      <!-- Calendario -->
+      <div class="card calend-card" id="calend-card">
+        <h2>Calendario Ferie & Festivi</h2>
+        <div style="display:flex;align-items:center;gap:7px;font-size:15px;margin-bottom:8px;">
+          <label for="calend-anno" style="margin-right:7px;font-weight:500;">Anno:</label>
+          <select id="calend-anno"></select>
+        </div>
+        <div class="calendar-wrap" id="calendar-list"></div>
+        <div class="min-hint2" style="margin:8px 1px 2px 1px;">
+          Clicca su un giorno per impostare/annullare come
+          <span class="label-ferie">Ferie</span>,
+          <span class="label-festivo">Festivo</span>,
+          <span class="label-malattia">Malattia</span>,
+          <span class="label-permesso">Permesso</span>
+        </div>
+        <div class="giornate-list" id="giornate-list"></div>
+      </div>
+    </div>
+    <div class="footer">© 2025 Umby@WWork — Grafici SVG, nessuna dipendenza esterna</div>
+  </div>
+  <!-- Modal per selezione tipo giornata -->
+  <div id="modal-backdrop" class="modal-backdrop" style="display:none">
+    <div class="modal-dialog" tabindex="0" id="modal-dialog">
+      <h4 id="modal-title"></h4>
+      <div style="margin-bottom:8px;">Imposta tipo di giornata:</div>
+      <form id="modal-form">
+        <label><input type="radio" name="tipo" value="ferie"/> Ferie</label><br/>
+        <label><input type="radio" name="tipo" value="festivo"/> Festivo</label><br/>
+        <label><input type="radio" name="tipo" value="malattia"/> Malattia</label><br/>
+        <label><input type="radio" name="tipo" value="permesso"/> Permesso</label><br/>
+        <label><input type="radio" name="tipo" value="none"/> Nessuno / Annulla</label>
+        <div style="margin-top:10px;">
+          <button type="button" class="close-btn" onclick="chiudiModale()">Chiudi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script>
+  // URL da cui prelevare il file JSON (modifica la stringa in base al tuo repository)
+  const GITHUB_JSON_URL = 'https://raw.githubusercontent.com/umbyone/work/main/umbywork_data_2025.json';
+
+  // ================== MODELLO DATI ===================
+  const FESTIVI_PRESET = [
+    "2025-01-01", "2025-01-06", "2025-03-19", "2025-04-18", "2025-04-21", "2025-05-01",
+    "2025-05-29", "2025-06-09", "2025-06-19", "2025-08-01", "2025-08-15",
+    "2025-11-01", "2025-12-08", "2025-12-25", "2025-12-26"
+  ];
+  const NOMI_MESI =  ["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"];
+  const NOMI_GIORNI = ["Domenica","Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato"];
+  const NOMI_GIORNI_BREVI = ["Lun","Mar","Mer","Gio","Ven"];
+
+  // Funzioni di salvataggio/caricamento da localStorage (usate anche per import/export)
+  function defaultState(){
+    let annoPredef = 2025;
+    let festivi = {};
+    for(let d of FESTIVI_PRESET) festivi[d] = true;
+    return {
+      year: annoPredef,
+      ferie: {},
+      festivi: festivi,
+      malattia: {},
+      permesso: {},
+      lavoro: {},
+      swPrefs: [1,3,4]
+    };
+  }
+  function salvaState(state){ 
+    localStorage.setItem("umbyWorkData",JSON.stringify(state)); 
+  }
+  // caricaState ora viene utilizzata come fallback se la fetch da GitHub fallisce
+  function caricaState(){ 
+    try{ 
+      const t = JSON.parse(localStorage.getItem("umbyWorkData")); 
+      return t || defaultState(); 
+    } catch(e){ 
+      return defaultState();
+    }
+  }
+
+  // Dichiarazione variabile globale dello stato
+  let state = defaultState();
+
+  // Funzioni per export/import locale (rimangono invariati)
+  function esportaDati() {
+    const dataToSave = JSON.stringify(state, null, 2);
+    const blob = new Blob([dataToSave], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `umbywork_data_${state.year}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  function caricaDati(event) {
+    const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const loadedState = JSON.parse(e.target.result);
+        if (typeof loadedState === 'object' && loadedState !== null && loadedState.hasOwnProperty('year') && loadedState.hasOwnProperty('lavoro')) {
+            state = loadedState;
+            salvaState(state);
+            document.getElementById("calend-anno").value = state.year;
+            aggiornaAll();
+            alert("Dati caricati con successo!");
+        } else {
+            alert("Errore: Il file JSON non contiene dati validi per l'applicazione.");
+        }
+      } catch (error) {
+        alert("Errore durante il parsing del file JSON: " + error.message);
+        console.error("Errore di caricamento dati:", error);
+      }
+      event.target.value = '';
+    };
+    reader.onerror = (error) => {
+      alert("Errore durante la lettura del file.");
+      console.error("Errore lettura file:", error);
+    };
+    reader.readAsText(file);
+  }
+
+  // Funzione per fetch dei dati dal repository GitHub
+  async function fetchDataFromGitHub() {
+    try {
+      const response = await fetch(GITHUB_JSON_URL);
+      if (!response.ok) throw new Error("Errore nel fetch: " + response.statusText);
+      const fetchedData = await response.json();
+      // Validazione minima: devono esistere almeno 'year' e 'lavoro'
+      if (fetchedData && typeof fetchedData === 'object' && fetchedData.hasOwnProperty('year') && fetchedData.hasOwnProperty('lavoro')) {
+        state = fetchedData;
+        salvaState(state);
+      } else {
+        console.warn("I dati fetchati non sono validi. Verrà usato lo stato precedentemente salvato.");
+        state = caricaState();
+      }
+    } catch (error) {
+      console.error("Fetch dal repository GitHub fallito: ", error);
+      state = caricaState();
+    }
+  }
+
+  // ========== FUNZIONE STAMPA REPORT ===========
+  function stampaReport() {
+    let year = state.year;
+    let ferie = Object.keys(state.ferie).filter(d => d.startsWith(String(state.year))).length;
+    let festivi = Object.keys(state.festivi).filter(d => d.startsWith(String(state.year))).length;
+    let malattia = Object.keys(state.malattia).filter(d => d.startsWith(String(state.year))).length;
+    let permesso = Object.keys(state.permesso).filter(d => d.startsWith(String(state.year))).length;
+    let totMin = 0;
+    Object.entries(state.lavoro).forEach(([dt, val]) => {
+      if (dt.startsWith(state.year + "-")) totMin += minutiLavorati(val);
+    });
+    let [h, m] = min2hm(totMin);
+    let settimana = Math.max(1, getSettimaneLavorate());
+    let swEff = getSwEffettuati();
+    let swTot = swEff.max;
+    let node = document.createElement("div");
+    let quota = document.getElementById("quorum-tabelle");
+    if (quota) node.innerHTML = quota.innerHTML || "";
+    let html = `
+      <div style="text-align:center;margin-bottom:12px;"><h2>Report Annuale ${year} — Umby@Work2025</h2></div>
+      <ul style="font-size:1.18em;margin-bottom:14px;line-height:1.75;padding-left:20px;">
+        <li><b>Ore totali lavorate:</b> <span style="color:#317F44;font-weight:600;">${h}:${pad2(m)}</span></li>
+        <li><b>Ferie usate:</b> ${ferie} — <b>Festivi:</b> ${festivi} — <b>Malattia:</b> ${malattia} — <b>Permesso:</b> ${permesso}</li>
+        <li><b>Smartworking effettuati:</b> ${swEff.eff} / ${swTot} (max)</li>
+      </ul>
+      <hr style="margin:18px 0 13px 0;">
+      <div>
+        <div style="font-size:1.04em; margin-bottom:6px;">
+        <b>Dettaglio Quorum settimane/mese</b>
+        </div>
+        ${node.innerHTML}
+      </div>
+    `;
+    document.getElementById("dashboard-print-report").innerHTML = html;
+    setTimeout(() => window.print(), 100);
+  }
+
+  // ========= INIZIALIZZAZIONE E RENDER PRINCIPALE ==========
+  function aggiornaAll(){
+    salvaState(state);
+    document.getElementById("calend-anno").value = state.year;
+    disegnaSmartWorking();
+    disegnaCalendario();
+    aggiornaBarChart();
+    aggiornaPieCharts();
+    aggiornaStats();
+    aggiornaListaGiornate();
+    aggiornaBarChartVoci();
+    aggiornaOrariRiepilogo();
+    aggiornaQuorumTabelle();
+  }
+
+  window.onload = () => {
+    // Caricamento dati dal file JSON presente su GitHub
+    (async function init(){
+      await fetchDataFromGitHub();
+      // Popolazione del picker anno
+      const sel = document.getElementById("calend-anno");
+      let y = (new Date()).getFullYear();
+      sel.innerHTML = "";
+      for(let i = y - 2; i <= y + 1; i++) {
+        let opt = document.createElement("option");
+        opt.value = i;
+        opt.text = i;
+        sel.appendChild(opt);
+      }
+      if(!sel.querySelector(`option[value="${state.year}"]`)) {
+          let opt = document.createElement("option");
+          opt.value = state.year;
+          opt.text = state.year;
+          sel.appendChild(opt);
+      }
+      sel.value = state.year;
+      sel.onchange = function(){
+        state.year = Number(sel.value);
+        aggiornaAll();
+      };
+      if (!document.getElementById("orari-data").value) {
+        document.getElementById("orari-data").value = oggiISO();
+      }
+      document.getElementById("orari-data").onchange = aggiornaOrariRiepilogo;
+      document.getElementById("orari-form").onsubmit = salvaOrariGiorno;
+      aggiornaAll();
+    })();
+  };
+
+  // ========= FUNZIONI UTILI =========
+  function giorniInMese(y, m){ return new Date(y, m + 1, 0).getDate(); }
+  function pad2(n){ return n < 10 ? "0" + n : "" + n; }
+  function oggiISO(){ let d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+  function min2hm(min){ let h = Math.floor(min/60), m = min % 60; return [h, m]; }
+  function minutiLavorati(orari){
+    let tot = 0;
+    if(orari.in1 && orari.out1) tot += parseTime(orari.out1) - parseTime(orari.in1);
+    if(orari.in2 && orari.out2) tot += parseTime(orari.out2) - parseTime(orari.in2);
+    return Math.max(tot, 0);
+  }
+  function parseTime(t){
+    if(!t) return 0;
+    let [h, m] = t.split(":").map(Number);
+    return h * 60 + (m || 0);
+  }
+  function tipoGiornata(iso){
+    if(state.ferie[iso]) return "ferie";
+    if(state.festivi[iso]) return "festivo";
+    if(state.malattia[iso]) return "malattia";
+    if(state.permesso[iso]) return "permesso";
+    return "";
+  }
+  // ====== GESTIONE MODALE (CALENDARIO) ======
+  let currModalDay = "";
+  function apriModale(iso){
+    currModalDay = iso;
+    document.getElementById("modal-title").textContent = "Giorno " + iso;
+    let tipoDef = tipoGiornata(iso) || "none";
+    let radios = document.querySelectorAll("#modal-form input[type=radio]");
+    radios.forEach(r => { r.checked = (r.value === tipoDef); });
+    document.getElementById("modal-backdrop").style.display = "flex";
+    setTimeout(() => { document.getElementById("modal-dialog").focus(); }, 100);
+    document.getElementById("modal-form").onsubmit = gestisciModale;
+    radios.forEach(r => { r.onchange = gestisciModale; });
+  }
+  function chiudiModale(){
+    document.getElementById("modal-backdrop").style.display = "none";
+    currModalDay = "";
+  }
+  function gestisciModale(e){
+    if(e && e.preventDefault) e.preventDefault();
+    let tipo = document.querySelector("#modal-form input[type=radio]:checked").value;
+    ["ferie", "festivi", "malattia", "permesso"].forEach(t => { 
+      if(state[t][currModalDay]) delete state[t][currModalDay]; 
+    });
+    if(tipo && tipo !== "none") state[tipo][currModalDay] = true;
+    chiudiModale();
+    aggiornaAll();
+    return false;
+  }
+  // ========= CALENDARIO =========
+  function disegnaCalendario(){
+    let calendarList = document.getElementById("calendar-list");
+    calendarList.innerHTML = "";
+    for(let mese = 0; mese < 12; mese++){
+      let monthDiv = document.createElement("div");
+      monthDiv.className = "month-cal";
+      let html = "<div style='text-align:center;font-weight:600;margin-bottom:2px;'>" + NOMI_MESI[mese] + "</div>";
+      html += "<div class='calendar-days'>";
+      for(let i = 0; i < 7; i++) html += `<div class='calendar-head'>${["L","M","M","G","V","S","D"][i]}</div>`;
+      let first = (new Date(state.year, mese, 1).getDay() + 6) % 7;
+      for(let i = 0; i < first; i++) html += "<div></div>";
+      let giorniMese = giorniInMese(state.year, mese);
+      for(let d = 1; d <= giorniMese; d++){
+        let iso = `${state.year}-${pad2(mese+1)}-${pad2(d)}`;
+        let tipoG = tipoGiornata(iso);
+        html += `<div class='calendar-day ${tipoG}' tabindex=0 title='${iso}' aria-label='${tipoG || "Giorno"}'
+           onclick='apriModale("${iso}")'>${d}</div>`;
+      }
+      html += "</div>";
+      monthDiv.innerHTML = html;
+      calendarList.appendChild(monthDiv);
+    }
+  }
+  // ========= GIORNATE SPECIALI =========
+  function aggiornaListaGiornate(){
+    let arr = [];
+    ["ferie", "festivi", "malattia", "permesso"].forEach(tipo => {
+      Object.keys(state[tipo] || {}).filter(dt => dt.startsWith(state.year)).forEach(dt => {
+        arr.push({ dt, tipo });
+      });
+    });
+    arr.sort((a, b) => a.dt.localeCompare(b.dt));
+    let div = document.getElementById("giornate-list");
+    if(!arr.length){
+      div.innerHTML = "<span style='color:#888;font-size:13px'>Nessuna giornata speciale inserita.</span>";
+      return;
+    }
+    let html = "<h4 style='font-size:14px;margin:5px 0 6px 0;'>Giornate Speciali inserite:</h4>";
+    arr.forEach(g => {
+      let cls = g.tipo === "ferie" ? "label-ferie" : g.tipo === "festivi" ? "label-festivo" :
+                g.tipo === "malattia" ? "label-malattia" : "label-permesso";
+      html += `<span class='${cls}'>${g.dt} — <b>${g.tipo.charAt(0).toUpperCase() + g.tipo.slice(1)}</b></span>
+               <button type="button" onclick='rimuoviGiorno("${g.dt}", "${g.tipo}")'>Rimuovi</button><br/>`;
+    });
+    div.innerHTML = html;
+  }
+  function rimuoviGiorno(dt, tipo){
+    delete state[tipo][dt];
+    aggiornaAll();
+  }
+  // ========= ORARI LAVORATIVI =========
+  function salvaOrariGiorno(e){
+    let dt = document.getElementById("orari-data").value;
+    let orari = {
+      in1: document.getElementById("in1").value,
+      out1: document.getElementById("out1").value,
+      in2: document.getElementById("in2").value,
+      out2: document.getElementById("out2").value
+    };
+    if(orari.in1 || orari.out1 || orari.in2 || orari.out2){
+      state.lavoro[dt] = orari;
+    } else {
+      delete state.lavoro[dt];
+    }
+    aggiornaAll();
+    return false;
+  }
+  function aggiornaOrariRiepilogo(){
+    let dt = document.getElementById("orari-data").value;
+    let orari = state.lavoro[dt] || {};
+    let min = minutiLavorati(orari);
+    let oreTarget = 8, minTarget = 24, minDisp = min - (oreTarget * 60 + minTarget);
+    let [h, m] = min2hm(min);
+    let [hdiff, mdiff] = min2hm(Math.abs(minDisp));
+    let diffSign = minDisp >= 0 ? "+" : "-";
+    document.getElementById("orari-riepilogo").innerHTML =
+      `Totale lavorato: <b>${h}:${pad2(m)}</b><br/>
+       Ore straordinarie: <b style='color:${minDisp>=0?"#279933":"#c23"}'>
+       ${diffSign}${hdiff}:${pad2(mdiff)}</b><br/>
+       <span class='min-hint'>Target giornaliero: 8h 24m</span>`;
+    document.getElementById("in1").value = orari.in1 || '';
+    document.getElementById("out1").value = orari.out1 || '';
+    document.getElementById("in2").value = orari.in2 || '';
+    document.getElementById("out2").value = orari.out2 || '';
+  }
+  // ========= SMARTWORKING =========
+  function getSwEffettuati(){
+    let byWeek = {};
+    Object.keys(state.lavoro).forEach(dt => {
+      if(!dt.startsWith(state.year)) return;
+      let d = new Date(dt + "T00:00:00");
+      let wd = d.getDay();
+      let wdISO = wd === 0 ? 7 : wd;
+      if(state.swPrefs.includes(wdISO) && minutiLavorati(state.lavoro[dt]) > 0){
+        let week = getWeekNumber(d);
+        byWeek[week] = (byWeek[week] || 0) + 1;
+      }
+    });
+    let settimane = getSettimaneLavorate();
+    let eff = Object.values(byWeek).reduce((a, v) => a + Math.min(3, v), 0);
+    return { eff, max: settimane * 3 };
+  }
+  function getSettimaneLavorate(){
+    let weeks = {};
+    Object.keys(state.lavoro).forEach(dt => {
+      if(!dt.startsWith(state.year)) return;
+      let week = getWeekNumber(new Date(dt + "T00:00:00"));
+      weeks[week] = true;
+    });
+    return Object.keys(weeks).length || 1;
+  }
+  function getWeekNumber(d){
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    let yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    let weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return weekNo;
+  }
+  // ========= DASHBOARD GRAFICI E TABLE =========
+  function aggiornaBarChart(){
+    const node = document.getElementById("dashboard-bar");
+    let arr = Array(12).fill(0).map((_, m) => ({
+      mese: m,
+      totMin: 0,
+      quorum: 0,
+      scostamento: 0
+    }));
+    let tipiSpeciali = ["ferie", "festivi", "malattia", "permesso"];
+    tipiSpeciali.forEach(tipo => {
+        Object.keys(state[tipo]).forEach(dt => {
+             if(dt.startsWith(state.year)){
+                 let mese = Number(dt.split("-")[1]) - 1;
+                 if (tipo === "ferie" || tipo === "festivo") {
+                    arr[mese].totMin += 504;
+                 }
+             }
+        });
+    });
+    Object.keys(state.lavoro).forEach(dt => {
+      if(dt.startsWith(state.year)){
+        let mese = Number(dt.split("-")[1]) - 1;
+        arr[mese].totMin += minutiLavorati(state.lavoro[dt]);
+      }
+    });
+    for(let m = 0; m < 12; m++){
+      let settimane = getWeeksInMonth(state.year, m);
+      arr[m].quorum = settimane * 2520;
+      arr[m].scostamento = arr[m].totMin - arr[m].quorum;
+    }
+    let svgW = 350, svgH = 80, marginY = 16, barW = 25, barSp = 7;
+    let maxVal = Math.max(...arr.map(x => x.totMin), ...arr.map(x => x.quorum));
+    maxVal = maxVal * 1.2;
+    if(maxVal < 2520) maxVal = 2520;
+    let svg = `<svg width="${svgW}" height="${svgH}">`;
+    for(let i = 0; i < 12; i++){
+      let h = (arr[i].totMin / maxVal) * (svgH - 2 * marginY);
+      let y = svgH - h - marginY;
+      let barColor = arr[i].totMin >= arr[i].quorum ? '#5FB067' : '#E17055';
+      let [th, tm] = min2hm(arr[i].totMin);
+      svg += `
+        <g>
+          <rect x="${i*(barW+barSp)+16}" y="${y}" width="${barW}" height="${h}" style="fill:${barColor}" rx="5"></rect>
+          <text class="bar-label2" x="${i*(barW+barSp)+barW/2+16}" y="${y-5}">${th}:${pad2(tm)}</text>
+          <text class="bar-x-label" x="${i*(barW+barSp)+barW/2+16}" y="${svgH-2}">${NOMI_MESI[i]}</text>
+        </g>
+      `;
+    }
+    let quorumLineY = svgH - (arr[0].quorum / maxVal) * (svgH - 2 * marginY) - marginY;
+    svg += `<line x1="16" y1="${quorumLineY}" x2="${svgW-16}" y2="${quorumLineY}" stroke="#c23" stroke-width="1" stroke-dasharray="3,3"/>`;
+    let [qh, qm] = min2hm(arr[0].quorum);
+    svg += `<text x="${svgW - 10}" y="${quorumLineY - 3}" text-anchor="end" fill="#c23" style="font-size:10px;">Quorum ${qh}:${pad2(qm)}</text>`;
+    svg += "</svg>";
+    node.innerHTML = svg + `<div class='dashboard-legend'>Barre verdi = ≥ quorum mensile | rosse = < quorum | Ferie/festivi conteggiati come 8h24min</div>`;
+  }
+  function aggiornaBarChartVoci(){
+    const node = document.getElementById("dashboard-bar-voci");
+    let arr = [
+      Object.keys(state.ferie).filter(d => d.startsWith(state.year)).length,
+      Object.keys(state.festivi).filter(d => d.startsWith(state.year)).length,
+      Object.keys(state.malattia).filter(d => d.startsWith(state.year)).length,
+      Object.keys(state.permesso).filter(d => d.startsWith(state.year)).length
+    ];
+    let colori = ["#FFC43A", "#C3C1FF", "#F17C67", "#7ECA9C"];
+    let nomi = ["Ferie", "Festivi", "Malattia", "Permesso"];
+    let maxVal = Math.max(...arr, 1);
+    let svgW = 330, svgH = 74, marginY = 16;
+    let svg = `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">`;
+    for(let i = 0; i < 4; i++){
+      let h = (arr[i] / maxVal) * (svgH - marginY * 2);
+      svg += `<g>
+        <rect x="${i*63+33}" y="${svgH-h-marginY}" width="39" height="${h}" fill="${colori[i]}" rx="5"></rect>
+        <text class="bar-label2" x="${i*63+53}" y="${svgH-h-marginY-6}" style="fill:${colori[i]};">${arr[i]}</text>
+        <text class="bar-x-label" x="${i*63+53}" y="${svgH-7}">${nomi[i]}</text>
+        </g>`;
+    }
+    svg += "</svg>";
+    node.innerHTML = svg + `<div class='dashboard-legend' style="margin-bottom:-7px;">Giorni per ciascuna voce annuale</div>`;
+  }
+  function aggiornaPieCharts(){
+    let swEff = getSwEffettuati();
+    let swPie = document.getElementById("sw-pie");
+    let swTot = swEff.max;
+    let pie = genPieChart([swEff.eff, Math.max(swTot - swEff.eff, 0)], ["#4A90E2", "#EAEEFA"],
+      [`Effettuati: ${swEff.eff}`, `Max ${getSettimaneLavorate()} sett: ${swTot}`]);
+    swPie.innerHTML = pie;
+    let ferie = Object.keys(state.ferie).filter(d => d.startsWith(state.year)).length;
+    let festivi = Object.keys(state.festivi).filter(d => d.startsWith(state.year)).length;
+    let malattia = Object.keys(state.malattia).filter(d => d.startsWith(state.year)).length;
+    let permesso = Object.keys(state.permesso).filter(d => d.startsWith(state.year)).length;
+    let totale = ferie + festivi + malattia + permesso;
+    let pie2 = genPieChart(
+      [ferie, festivi, malattia, permesso],
+      ["#FFC43A", "#C3C1FF", "#F17C67", "#7ECA9C"],
+      [
+        `Ferie: ${ferie} (${percento(ferie, totale)})`,
+        `Festivi: ${festivi} (${percento(festivi, totale)})`,
+        `Malattia: ${malattia} (${percento(malattia, totale)})`,
+        `Permesso: ${permesso} (${percento(permesso, totale)})`
+      ]
+    );
+    document.getElementById("dashboard-pie").innerHTML = pie2;
+  }
+  function genPieChart(valori, colori, legenda){
+    let somma = valori.reduce((a, v) => a + v, 0) || 1, angle = 0, circ = 100 * Math.PI;
+    let sez = [], offset = 0;
+    for(let i = 0; i < valori.length; i++){
+      let frac = valori[i] / somma, long = frac * circ;
+      sez.push({ strokedash: `${long} ${circ - long}`, stroke: colori[i], perc: Math.round(frac * 100), offset });
+      offset += long;
+    }
+    let svg = `<svg width="48" height="48"><g>`;
+    for(let i = 0; i < sez.length; i++){
+      svg += `<circle cx="24" cy="24" r="16" fill="none" stroke="${sez[i].stroke}" stroke-width="9" stroke-dasharray="${sez[i].strokedash}" stroke-dashoffset="${-sez[i].offset || 0}"></circle>`;
+    }
+    svg += "</g></svg><span style='vertical-align:top'>";
+    for(let i = 0; i < legenda.length; i++){
+      svg += `<div class="pie-legend" style="color:${colori[i]};">${legenda[i]}</div>`;
+    }
+    svg += "</span>";
+    return svg;
+  }
+  function percento(n, den){ return den ? Math.round((n / den) * 100) + "%" : "0%"; }
+  function aggiornaStats(){
+    let ferie = Object.keys(state.ferie).filter(d => d.startsWith(state.year)).length;
+    let festivi = Object.keys(state.festivi).filter(d => d.startsWith(state.year)).length;
+    let malattia = Object.keys(state.malattia).filter(d => d.startsWith(state.year)).length;
+    let permesso = Object.keys(state.permesso).filter(d => d.startsWith(state.year)).length;
+    let totMin = 0;
+    Object.entries(state.lavoro).forEach(([dt, val]) => {
+      if(dt.startsWith(state.year + "-")) totMin += minutiLavorati(val);
+    });
+    let [h, m] = min2hm(totMin);
+    let settimana = Math.max(1, getSettimaneLavorate());
+    let swEff = getSwEffettuati();
+    let swTot = swEff.max;
+    let effTxt = `<b>${h}:${pad2(m)}</b>`;
+    document.getElementById("dashboard-stats").innerHTML =
+     `Ore totali lavorate (netto): <span style="color:#385;">${effTxt}</span>
+      <br/><span class='dashboard-legend'>Target annuale (248gg @8h24m): <b>${Math.round(8.4 * 248)}h</b></span>
+      <br/><span class='dashboard-legend'>Ferie usate: <b>${ferie}</b> / Festivi: <b>${festivi}</b> / Malattia: <b>${malattia}</b> / Permesso: <b>${permesso}</b>
+      <br/>Smartworking effettuati: <b>${swEff.eff} / ${swTot}</b></span>`;
+  }
+  function getWeeksInMonth(year, month){
+    let weeks = {};
+    let giorniMese = giorniInMese(year, month);
+    for(let d = 1; d <= giorniMese; d++){
+      let iso = `${year}-${pad2(month+1)}-${pad2(d)}`;
+      let dayOfWeek = (new Date(iso + "T00:00:00").getDay() + 6) % 7;
+      if (dayOfWeek >= 0 && dayOfWeek <= 4) {
+         let week = getWeekNumber(new Date(iso + "T00:00:00"));
+         weeks[week] = true;
+      }
+    }
+    return Object.keys(weeks).length;
+  }
+  function calcWeeks(year){
+    let weeks = {};
+    let d = new Date(`${year}-01-01T00:00:00`);
+    let endOfYear = new Date(`${year}-12-31T00:00:00`);
+    let startDate = new Date(`${year-1}-12-20T00:00:00`);
+    let endDate = new Date(`${year+1}-01-15T00:00:00`);
+    let current = startDate;
+    while(current <= endDate){
+      let y = current.getFullYear();
+      let iso = `${y}-${pad2(current.getMonth()+1)}-${pad2(current.getDate())}`;
+      let week = getWeekNumber(current);
+      if (y === year) {
+            if(!weeks[week]) weeks[week] = [];
+            weeks[week].push(iso);
+      }
+      current.setDate(current.getDate() + 1);
+    }
+    let finalWeeks = {};
+    Object.keys(weeks).forEach(week => {
+        if (weeks[week].some(iso => iso.startsWith(`${year}-`))) {
+            finalWeeks[week] = weeks[week].filter(iso => iso.startsWith(`${year}-`));
+        }
+    });
+    return finalWeeks;
+  }
+  // ========= SMARTWORKING BUTTON =========
+  function disegnaSmartWorking(){
+    let row = document.getElementById("sw-row");
+    row.innerHTML = "";
+    for(let i = 1; i <= 5; i++){
+      let btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = NOMI_GIORNI_BREVI[i-1];
+      btn.className = state.swPrefs.includes(i) ? "selected" : "";
+      btn.onclick = () => toggleSwPref(i);
+      row.appendChild(btn);
+    }
+  }
+  function toggleSwPref(idx){
+    if(state.swPrefs.includes(idx)){
+      if(state.swPrefs.length > 1){
+         state.swPrefs = state.swPrefs.filter(x => x !== idx);
+      }
+    } else {
+      if(state.swPrefs.length < 3){
+         state.swPrefs.push(idx);
+      } else {
+         alert("Puoi selezionare un massimo di 3 giorni preferiti per lo smartworking.");
+      }
+    }
+    aggiornaAll();
+  }
+  </script>
+</body>
+</html>
