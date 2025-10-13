@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PROGRAMMA DI RAFFORZAMENTO ARTI INFERIORI</title>
+<style>
+  /* Page and print setup */
+  @page {
+    size: A4;
+    margin: 2cm;
+  }
+  :root{
+    --phase1:#1e88e5; /* blue */
+    --phase2:#2e7d32; /* green */
+    --phase3:#ef6c00; /* orange */
+    --text:#2c3e50;
+    --muted:#607d8b;
+    --bg:#ffffff;
+    --card:#f7f9fb;
+    --border:#e0e6ec;
+    --accent:#e91e63;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    line-height: 1.55;
+  }
+  h1,h2,h3,h4 { margin: 0 0 0.6rem 0; }
+  p { margin: 0 0 0.8rem 0; }
+  ul,ol { margin: 0.2rem 0 0.8rem 1.2rem; }
+  a { color: var(--phase1); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Cover page */
+  .cover {
+    min-height: 90vh;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(30,136,229,0.15), rgba(239,108,0,0.15));
+    padding: 40px;
+    page-break-after: always;
+  }
+  .cover .title {
+    font-size: 28px;
+    letter-spacing: 0.5px;
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+  .cover .subtitle {
+    font-size: 18px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+  .cover .desc {
+    max-width: 640px;
+    font-size: 14.5px;
+    color: #455a64;
+    margin: 0 auto 24px auto;
+  }
+  .badges {
+    display: inline-flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .badge {
+    border: 1px solid var(--border);
+    background: #fff;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #37474f;
+  }
+
+  /* Header and Footer (screen) */
+  .doc-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 18px 16px 80px 16px; /* extra bottom for footer */
+  }
+  .header {
+    display: none;
+  }
+  .footer {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 24px;
+    border-top: 1px solid var(--border);
+    background: #fafafa;
+    color: #78909c;
+    font-size: 12px;
+  }
+  .footer .page-number::after {
+    /* Attempt to show page numbers in print in supporting engines */
+    content: "Pagina " counter(page) " di " counter(pages);
+  }
+
+  /* Print: try to rely on pagination counters via margin boxes where supported */
+  @page {
+    @bottom-right {
+      content: "Pagina " counter(page) " di " counter(pages);
+      font-size: 11px;
+      color: #78909c;
+    }
+    @bottom-left {
+      content: "Programma di Rafforzamento Arti Inferiori";
+      font-size: 11px;
+      color: #78909c;
+    }
+  }
+
+  /* TOC */
+  .toc {
+    page-break-after: always;
+  }
+  .toc h2 {
+    text-align: center;
+    font-size: 20px;
+    margin-bottom: 16px;
+    color: #0f1f2e;
+  }
+  .toc-list {
+    display: grid;
+    gap: 6px;
+  }
+  .toc-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    padding: 8px 10px;
+    border-bottom: 1px dotted var(--border);
+    font-size: 14px;
+  }
+  .toc-item .right {
+    color: var(--phase1);
+    font-weight: 700;
+    opacity: 0.7;
+  }
+
+  /* Section headers (phases) */
+  .phase-header {
+    color: #fff;
+    padding: 14px 14px;
+    border-radius: 10px;
+    margin: 18px 0 12px 0;
+  }
+  .phase-1 { background: var(--phase1); }
+  .phase-2 { background: var(--phase2); }
+  .phase-3 { background: var(--phase3); }
+  .phase-header small { display:block; opacity:0.9; margin-top: 4px; }
+
+  .section { page-break-inside: avoid; }
+
+  /* Exercise card */
+  .exercise {
+    border: 1px solid var(--border);
+    background: var(--card);
+    border-radius: 12px;
+    padding: 14px;
+    margin: 16px 0;
+    page-break-inside: avoid;
+  }
+  .exercise-header {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .exercise-number {
+    font-weight: 900;
+    font-size: 22px;
+    line-height: 1;
+    padding-right: 10px;
+    border-right: 3px solid var(--border);
+  }
+  .exercise-title {
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .exercise.phase-1 .exercise-number { color: var(--phase1); }
+  .exercise.phase-2 .exercise-number { color: var(--phase2); }
+  .exercise.phase-3 .exercise-number { color: var(--phase3); }
+
+  .exercise-img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    margin: 10px 0 12px 0;
+  }
+  .boxes {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 10px;
+  }
+  .box {
+    grid-column: span 12;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--phase1);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .phase-2 .box { border-left-color: var(--phase2); }
+  .phase-3 .box { border-left-color: var(--phase3); }
+  .box h4 {
+    font-size: 14px;
+    color: #102a43;
+    margin-bottom: 6px;
+  }
+  .box ul, .box ol { margin: 0.2rem 0 0.4rem 1.1rem; }
+  .box li { margin: 3px 0; }
+
+  .grid-2 .box { grid-column: span 6; }
+  .grid-3 .box { grid-column: span 4; }
+
+  .note { background: #fff8e1; border-left-color: #f9a825; }
+  .benefit { background: #e8f5e9; border-left-color: #2e7d32; }
+  .danger { background: #ffebee; border-left-color: #c62828; }
+  .info { background: #e3f2fd; border-left-color: #1e88e5; }
+
+  /* Protocol and precautions tables/boxes */
+  .protocol {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    background: #fff;
+    margin: 16px 0;
+  }
+  .protocol h3 {
+    font-size: 18px; margin-bottom: 8px;
+  }
+  .protocol .session {
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin: 10px 0;
+    background: #fafafa;
+  }
+  .protocol .session h4 { margin-bottom: 6px; }
+  .protocol ul { margin-left: 1.1rem; }
+
+  .warn, .gold, .progress, .consult {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    margin: 10px 0;
+    background: #fff;
+  }
+  .warn { border-left: 4px solid #c62828; background: #ffebee; }
+  .gold { border-left: 4px solid #f9a825; background: #fffde7; }
+  .progress { border-left: 4px solid #2e7d32; background: #e8f5e9; }
+  .consult { border-left: 4px solid #1e88e5; background: #e3f2fd; }
+
+  /* Page breaks */
+  .page-break { page-break-after: always; height: 0; }
+  .pb-before { page-break-before: always; }
+
+  /* Print-specific tweaks */
+  @media print {
+    .doc-container { padding-bottom: 0; }
+    .footer { display: none; }
+    a { color: inherit; text-decoration: none; }
+    .cover { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<section class="cover" id="cover">
+  <div>
+    <div class="title">PROGRAMMA DI RAFFORZAMENTO ARTI INFERIORI</div>
+    <div class="subtitle">Protocollo Riabilitativo per Menisco e Legamento Collaterale Mediale</div>
+    <p class="desc">
+      Programma completo in 3 fasi sequenziali per ridurre il dolore, ripristinare la funzionalità del ginocchio e prevenire recidive. Include 15 esercizi con illustrazioni anatomiche, istruzioni dettagliate, protocollo settimanale e linee guida di sicurezza.
+    </p>
+    <div class="badges">
+      <span class="badge">15 esercizi</span>
+      <span class="badge">12+ settimane</span>
+      <span class="badge">Approccio progressivo</span>
+    </div>
+  </div>
+</section>
+
+<div class="doc-container">
+
+  <!-- Table of Contents -->
+  <section class="toc" id="indice">
+    <h2>Indice dei Contenuti</h2>
+    <div class="toc-list">
+      <div class="toc-item"><a href="#introduzione">Introduzione</a><span class="right">→</span></div>
+
+      <div class="toc-item"><a href="#fase1">FASE 1: Stabilizzazione e Controllo Neuromuscolare (Settimane 1–3)</a><span class="right">→</span></div>
+      <div class="toc-item"><a href="#ex1">1) Contrazioni Isometriche del Quadricipite</a><span class="right">1</span></div>
+      <div class="toc-item"><a href="#ex2">2) Flessioni Plantari/Dorsali della Caviglia</a><span class="right">2</span></div>
+      <div class="toc-item"><a href="#ex3">3) Wall Slides</a><span class="right">3</span></div>
+      <div class="toc-item"><a href="#ex4">4) Straight Leg Raise</a><span class="right">4</span></div>
+
+      <div class="toc-item"><a href="#fase2">FASE 2: Rinforzo Progressivo (Settimane 4–8)</a><span class="right">→</span></div>
+      <div class="toc-item"><a href="#ex5">5) Mini Squat</a><span class="right">5</span></div>
+      <div class="toc-item"><a href="#ex6">6) Step-Up</a><span class="right">6</span></div>
+      <div class="toc-item"><a href="#ex7">7) Affondi Statici</a><span class="right">7</span></div>
+      <div class="toc-item"><a href="#ex8">8) Ponte Gluteo</a><span class="right">8</span></div>
+      <div class="toc-item"><a href="#ex9">9) Clamshell</a><span class="right">9</span></div>
+
+      <div class="toc-item"><a href="#fase3">FASE 3: Forza Funzionale e Prevenzione (Settimane 9–12+)</a><span class="right">→</span></div>
+      <div class="toc-item"><a href="#ex10">10) Squat Completo</a><span class="right">10</span></div>
+      <div class="toc-item"><a href="#ex11">11) Affondi Camminati</a><span class="right">11</span></div>
+      <div class="toc-item"><a href="#ex12">12) Step-Down Eccentrico</a><span class="right">12</span></div>
+      <div class="toc-item"><a href="#ex13">13) Single Leg Deadlift</a><span class="right">13</span></div>
+      <div class="toc-item"><a href="#ex14">14) Lateral Band Walk</a><span class="right">14</span></div>
+      <div class="toc-item"><a href="#ex15">15) Esercizi Propriocettivi</a><span class="right">15</span></div>
+
+      <div class="toc-item"><a href="#protocollo">Protocollo Settimanale</a><span class="right">→</span></div>
+      <div class="toc-item"><a href="#precauzioni">Precauzioni e Monitoraggio</a><span class="right">→</span></div>
+    </div>
+  </section>
+
+  <!-- Introduction -->
+  <section id="introduzione" class="section">
+    <h2>Introduzione</h2>
+    <p>
+      La riabilitazione per lesioni del <strong>menisco</strong> e del <strong>legamento collaterale mediale (LCM)</strong> richiede un approccio graduale e strutturato. Le fasi del programma rispettano i tempi biologici di guarigione e puntano a ripristinare la stabilità articolare, la forza e il controllo neuromuscolare, riducendo il dolore e prevenendo recidive.
+    </p>
+
+    <h3>Obiettivi per Fase</h3>
+    <div class="boxes grid-3">
+      <div class="box info">
+        <h4>Fase 1 – Stabilizzazione (Settimane 1–3)</h4>
+        <ul>
+          <li>Ridurre infiammazione e dolore</li>
+          <li>Recuperare ROM completo</li>
+          <li>Attivare quadricipite (VMO) e prevenire atrofia</li>
+        </ul>
+      </div>
+      <div class="box benefit">
+        <h4>Fase 2 – Rinforzo Progressivo (Settimane 4–8)</h4>
+        <ul>
+          <li>Aumentare forza e resistenza</li>
+          <li>Migliorare stabilità dinamica</li>
+          <li>Introdurre esercizi funzionali in catena chiusa</li>
+        </ul>
+      </div>
+      <div class="box note">
+        <h4>Fase 3 – Forza Funzionale (Settimane 9–12+)</h4>
+        <ul>
+          <li>Massimizzare forza e funzionalità</li>
+          <li>Migliorare equilibrio e propriocezione</li>
+          <li>Prevenire recidive</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Linee Guida di Sicurezza</h3>
+    <div class="warn">
+      <h4>Interrompere immediatamente se:</h4>
+      <ul>
+        <li>Dolore acuto durante/dopo l’esercizio</li>
+        <li>Gonfiore importante del ginocchio</li>
+        <li>Sensazione di instabilità o “cedimento”</li>
+        <li>Blocco articolare o scroscio doloroso</li>
+      </ul>
+    </div>
+    <div class="gold">
+      <h4>Regole d’oro</h4>
+      <ul>
+        <li>Progressione graduale e senza dolore</li>
+        <li>Allineamento ginocchio-piede (evitare valgismo)</li>
+        <li>Enfatizzare il controllo eccentrico</li>
+        <li>Rinforzo bilanciato (quadricipite, glutei, ischiocrurali, abduttori)</li>
+        <li>Ghiaccio 15–20 min se necessario</li>
+      </ul>
+    </div>
+
+    <h3>Frequenza Consigliata</h3>
+    <p><strong>3–4 sessioni/settimana</strong>, durata <strong>30–45 minuti</strong>, con giorni alterni.</p>
+
+    <div class="note">
+      <h4>Nota</h4>
+      <p>Documento informativo: non sostituisce visita o indicazioni personalizzate del medico/fisioterapista.</p>
+    </div>
+  </section>
+
+  <!-- PHASE 1 -->
+  <section id="fase1" class="section pb-before">
+    <div class="phase-header phase-1">
+      <h2>FASE 1 – Stabilizzazione e Controllo Neuromuscolare (Settimane 1–3)</h2>
+      <small>Obiettivi: riduzione infiammazione, recupero ROM, attivazione quadricipite (VMO)</small>
+    </div>
+
+    <!-- Exercise 1 -->
+    <article id="ex1" class="exercise phase-1">
+      <div class="exercise-header">
+        <div class="exercise-number">01</div>
+        <div class="exercise-title">Contrazioni Isometriche del Quadricipite</div>
+      </div>
+      <img class="exercise-img" alt="Contrazioni Isometriche del Quadricipite" src="https://storage.googleapis.com/dall-e-images/KDgusWS74CPJA1uozUhF3txWXo73%2Fb5cf7768-f5d1-40ad-9fca-a1038945b84e.png"/>
+      <div class="boxes grid-2">
+        <div class="box info">
+          <h4>Muscoli Target</h4>
+          <ul>
+            <li>Retto femorale</li>
+            <li>Vasto mediale obliquo (VMO)</li>
+            <li>Vasto laterale</li>
+            <li>Vasto intermedio</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h4>Esecuzione (passi)</h4>
+          <ol>
+            <li>Seduto; asciugamano sotto il ginocchio</li>
+            <li>Estendere la gamba</li>
+            <li>Spingere il ginocchio verso il basso</li>
+            <li>Mantenere 5–10s</li>
+            <li>Rilascio 3–5s</li>
+          </ol>
+        </div>
+      </div>
+      <div class="boxes grid-3">
+        <div class="box">
+          <h4>Serie e Ripetizioni</h4>
+          <ul><li>3×15; pausa 60s</li></ul>
+        </div>
+        <div class="box benefit">
+          <h4>Benefici</h4>
+          <ul>
+            <li>Attivazione precoce</li>
+            <li>Stabilità rotulea</li>
+            <li>Nessun stress articolare</li>
+          </ul>
+        </div>
+        <div class="box note">
+          <h4>Note</h4>
+          <ul>
+            <li>Eseguibile più volte al giorno</li>
+            <li>Interrompere se dolore</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+
+    <!-- Exercise 2 -->
+    <article id="ex2" class="exercise phase-1">
+      <div class="exercise-header">
+        <div class="exercise-number">02</div>
+        <div class="exercise-title">Flessioni Plantari/Dorsali della Caviglia</div>
+      </div>
+      <img class="exercise-img" alt="Flessioni Caviglia" src="https://storage.googleapis.com/dall-e-images/KDgusWS74CPJA1uozUhF3txWXo73%2Fa20cc05f-0ef0-4a5c-884b-935108bffd4e.png"/>
+      <div class="boxes grid-2">
+        <div class="box info">
+          <h4>Muscoli Target</h4>
+          <ul>
+            <li>Tibiale anteriore</li>
+            <li>Gastrocnemio</li>
+            <li>Soleo</li>
+            <li>Stabilizzatori della caviglia</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h4>Esecuzione</h4>
+          <ol>
+            <li>Gamba estesa</li>
+            <li>Dorsiflessione 2s</li>
+            <li>Flessione plantare 2s</li>
+            <li>Alternare con movimento controllato</li>
+          </ol>
+        </div>
+      </div>
+      <div class="boxes grid-3">
+        <div class="box">
+          <h4>Serie e Ripetizioni</h4>
+          <ul><li>3×20; pausa 30s</li></ul>
+        </div>
+        <div class="box benefit">
+          <h4>Benefici</h4>
+          <ul>
+            <li>Migliora circolazione</li>
+            <li>Riduce rigidità/edema</li>
+          </ul>
+        </div>
+        <div class="box note">
+          <h4>Note</h4>
+          <ul>
+            <li>Possibile elastico per resistenza</li>
+            <li>Sicuro anche con tutore</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+
+    <!-- Exercise 3 -->
+    <article id="ex3" class="exercise phase-1">
+      <div class="exercise-header">
+        <div class="exercise-number">03</div>
+        <div class="exercise-title">Wall Slides (Scivolamenti sul Muro)</div>
+      </div>
+      <img class="exercise-img" alt="Wall Slides" src="https://storage.googleapis.com/dall-e-images/KDgusWS74CPJA1uozUhF3txWXo73%2Fbd10d354-7a14-42c4-8be6-55b40a23c7b6.png"/>
+      <div class="boxes grid-2">
+        <div class="box info">
+          <h4>Muscoli Target</h4>
+          <ul>
+            <li>Quadricipite</li>
+            <li>VMO</li>
+            <li>Grande gluteo</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h4>Esecuzione</h4>
+          <ol>
+            <li>Schiena al muro</li>
+            <li>Scendere a 30–45°</li>
+            <li>Mantenere 5s</li>
+            <li>Risalire lentamente</li>
+          </ol>
+        </div>
+      </div>
+      <div class="boxes grid-3">
+        <div class="box">
+          <h4>Serie e Ripetizioni</h4>
+          <ul><li>3×10</li></ul>
+        </div>
+        <div class="box benefit">
+          <h4>Benefici</h4>
+          <ul>
+            <li>Catena cinetica chiusa</li>
+            <li>Miglior controllo</li>
+          </ul>
+        </div>
+        <div class="box note">
+          <h4>Note</h4>
+          <ul>
+            <li>Ginocchio in linea col piede</li>
+            <li>Evitare valgismo</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+
+    <!-- Exercise 4 -->
+    <article id="ex4" class="exercise phase-1">
+      <div class="exercise-header">
+        <div class="exercise-number">04</div>
+        <div class="exercise-title">Straight Leg Raise (Sollevamento Gamba Tesa)</div>
+      </div>
+      <img class="exercise-img" alt="Straight Leg Raise" src="https://storage.googleapis.com/dall-e-images/KDgusWS74CPJA1uozUhF3txWXo73%2F33a21022-219e-4358-a018-2e02d5272e3e.png"/>
+      <div class="boxes grid-2">
+        <div class="box info">
+          <h4>Muscoli Target</h4>
+          <ul>
+            <li>Quadricipite</li>
+            <li>Ileopsoas</li>
+            <li>Retto femorale</li>
+            <li>Core</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h4>Esecuzione</h4>
+          <ol>
+            <li>Supino; una gamba piegata</li>
+            <li>Altra gamba estesa</li>
+            <li>Sollevare 30–45 cm</li>
+            <li>Ginocchio bloccato</li>
+            <li>Scendere controllato</li>
+          </ol>
+        </div>
+      </div>
+      <div class="boxes grid-3">
+        <div class="box">
+          <h4>Serie e Ripetizioni</h4>
+          <ul>
+            <li>3×12</li>
+            <li>Varianti: 0°, 45°, 90°, 135°</li>
+          </ul>
+        </div>
+        <div class="box benefit">
+          <h4>Benefici</h4>
+          <ul>
+            <li>Rinforzo flessori/quadricipite</li>
+            <li>Basso carico articolare</li>
+          </ul>
+        </div>
+        <div class="box note">
+          <h4>Note</h4>
+          <ul>
+            <li>Evitare compensi lombari</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- PHASE 2 -->
+  <section id="fase2" class="section pb-before">
+    <div class="phase-header phase-2">
+      <h2>FASE 2 – Rinforzo Progressivo (Settimane 4–8)</h2>
+      <small>Obiettivi: incrementare forza, stabilità dinamica, controllo eccentrico</small>
+    </div>
+
+    <!-- Exercise 5 -->
+    <article id="ex5" class="exercise phase-2">
+      <div class="exercise-header">
+        <div class="exercise-number">05</div>
+        <div class="exercise-title">Mini Squat (0–60°)</div>
+      </div>
+      <img class="exercise-img" alt="Mini Squat" src="https://storage.googleapis.com/dall-e-images/KDgusWS74CPJA1uozUhF3txWXo73%2F127ec019-6f62-457b-bdd7-ef16c31c1c54.png"/>
+      <div class="boxes grid-2">
+        <div class="box info">
+          <h4>Muscoli Target</h4>
+          <ul>
+            <li>Quadricipite, VMO</li>
+            <li>Grande gluteo</li>
+            <li>Ischiocrurali</li>
+            <li>Adduttori</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h4>Esecuzione</h4>
+          <ol>
+            <li>Piedi larghezza spalle</li>
+            <li>Scendere a 45–60°</li>
+            <li>Risalire controllato</li>
+          </ol>
+        </div>
+      </div>
+      <div class="boxes grid-3">
+        <div class="box">
+          <h4>Serie e Ripetizioni</h4>
+          <ul><li>3×15</li></ul>
+        </div>
+        <div class="box benefit">
+          <h4>Benefici</h4>
+          <ul><li>Forza in sicurezza</li></ul>
+        </div>
+        <div class="box note">
+          <h4>Note</h4>
+          <ul><li>Elastico sopra ginocchia per attivare abduttori</li></ul>
+        </div>
+      </div>
+    </article>
+
+    <!-- Exercise 6 -->
+    <article id="ex6" class="exercise phase-2">
+      <div class="exercise-header">
+        <div class="exercise-number">06</div>
+        <div class="exercise-title">Step-Up (Gradino 10–15 cm)</div>
+      </div>
+      <img class="exercise-img" alt="Step-Up" src="https://storage.googleapis.com/dall-e-images/KDgusWS74CPJA1uozUhF3txWXo73%2Fa848296c-5189-46fe-a11c-bb2e65051cc0.png"/>
+      <div class="boxes grid-2">
+        <div class="box info">
+          <h4>Muscoli Target</h4>
+          <ul>
+            <li>Quadricipite</li>
+            <li>Grande gluteo, Medio gluteo</li>
+            <li>Ischiocrurali</li>
+            <li>Polpacci</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h4>Esecuzione</h4>
+          <ol>
+            <li>Salire col piede intero sul gradino</li>
+            <li>Controllare il bacino</li>
+            <li>Enfatizzare la discesa 3–4s</li>
+          </ol>
+        </div>
+      </div>
+      <div class="boxes grid-3">
+        <div class="box">
+          <h4>Serie e Ripetizioni</h4>
+          <ul><li>3×10 per lato</li></ul>
+        </div>
+        <div class="box benefit">
+          <h4>Benefici</h4>
+          <ul>
+            <li>Esercizio funzionale</li>
+            <li>Forza eccentrica</li>
+          </ul>
+        </div>
+        <div class="box note">
+          <h4>Note</h4>
+          <ul><li>Aumentare altezza in modo graduale</li></ul>
+        </div>
+      </div>
+    </article>
+
+    <!-- Exercise 7 -->
+    <article id="ex7" class="exercise phase-2">
+      <div class="exercise-header">
+        <div class="exercise-number">07</div>
+        <div class="exercise-title">Affondi Statici</div>
+      </div>
+      <img class="exercise-img" alt="Affondi Statici" src="https://storage.googleapis.com/dall-e-images/KDgusWS74CPJA1uozUhF3txWXo73%2Fcc7c0b2b-6bd3-47ce-9bda-a51e8b1b17b1.png"/>
+      <div class="boxes grid-2">
+        <div class="box info">
+          <h4>Muscoli Target</h4>
+          <ul>
+            <li>Quadricipite</li>
+            <li>Grande gluteo</li>
+            <li>Ischiocrurali</li>
+            <li>Flessori anca, Adduttori</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h4>Esecuzione</h4>
+          <ol>
+            <li>Posizione split</li>
+            <li>Ginocchio frontale a 90°</li>
+            <li>Ginocchio posteriore vicino al suolo</li>
+            <li>Mantenere 20–30s</li>
+          </ol>
+        </div>
+      </div>
+      <div class="boxes grid-3">
+        <div class="box">
+          <h4>Serie e Ripetizioni</h4>
+          <ul><li>3 serie per lato</li></ul>
+        </div>
+        <div class="box benefit">
+          <h4>Benefici</h4>
+          <ul><li>Stabilità e controllo</li></ul>
+        </div>
+        <div class="box note">
+          <h4>Note</h4>
+          <ul>
+            <li>Ginocchio anteriore non oltre le dita</li>
+            <li>Tronco neutro</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+
+    <!-- Exercise 8 -->
+    <article id="ex8" class="exercise phase-2">
+      <div class="exercise-header">
+        <div class="exercise-number">08</div>
+        <div class="exercise-title">Ponte Gluteo (Glute Bridge)</div>
+      </div>
+      <img class="exercise-img" alt="Ponte Gluteo" src="https://storage.googleapis.com/dall-e-images/KDgusWS74CPJA1uozUhF3txWXo73%2Fad9d9ffd-5aab-4eda-81c2-d7abd38d8836.png"/>
+      <div class="boxes grid-2">
+        <div class="box info">
+          <h4>Muscoli Target</h4>
+          <ul>
+            <li>Grande gluteo</li>
+            <li>Ischiocrurali</li>
+            <li>Erettori spinali</li>
+            <li>Core</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h4>Esecuzione</h4>
+          <ol>
+            <li>Supino; piedi a terra</li>
+            <li>Sollevare il bacino</li>
+            <li>Tenere 3s</li>
+            <li>Scendere lentamente</li>
+          </ol>
+        </div>
+      </div>
+      <div class="boxes grid-3">
+        <div class="box">
+          <h4>Serie e Ripetizioni</h4>
+          <ul><li>3×15</li></ul>
+        </div>
+        <div class="box benefit">
+          <h4>Benefici</h4>
+          <ul><li>Rinforzo catena posteriore</li></ul>
+        </div>
+        <div class="box note">
+          <h4>Note</h4>
+          <ul><li>Variante avanzata: monopodalico</li></ul>
+        </div>
+      </div>
+    </article>
+
+    <!-- Exercise 9 -->
+    <article id="ex9" class="exercise phase-2">
+      <div class="exercise-header">
+        <div class="exercise-number">09</div>
+        <div class="exercise-title">Clamshell (Conchiglia)</div>
+      </div>
+      <img class="exercise-img" alt="Clamshell" src="https://storage.googleapis.com/dall-e-images/KDgusWS74CPJA1uozUhF3txWXo73%2F492ade23-60d5-40ca-855c-1f84e2523852.png"/>
+      <div class="boxes grid-2">
+        <div class="box info">
+          <h4>Muscoli Target</h4>
+          <ul>
+            <li>Medio gluteo</li>
+            <li>Piccolo gluteo</li>
+            <li>Rotatori esterni (piriforme)</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h4>Esecuzione</h4>
+          <ol>
+            <li>Fianco, ginocchia 90°</li>
+            <li>Aprire ginocchio superiore</li>
+            <li>Piedi uniti</li>
+            <li>Controllo del bacino</li>
+          </ol>
+        </div>
+      </div>
+      <div class="boxes grid-3">
+        <div class="box">
+          <h4>Serie e Ripetizioni</h4>
+          <ul><li>3×15 per lato</li></ul>
+        </div>
+        <div class="box benefit">
+          <h4>Benefici</h4>
+          <ul><li>Stabilità laterale del ginocchio</li></ul>
+        </div>
+        <div class="box note">
+          <h4>Note</h4>
+          <ul><li>Elastico per maggiore resistenza</li></ul>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- PHASE 3 -->
+  <section id="fase3" class="section pb-before">
+    <div class="phase-header phase-3">
+      <h2>FASE 3 – Forza Funzionale e Prevenzione (Settimane 9–12+)</h2>
+      <small>Obiettivi: forza globale, controllo dinamico, propriocezione</small>
+    </div>
+
+    <!-- Exercise 10 -->
+    <article id="ex10" class="exercise phase-3">
+      <div class="exercise-header">
+        <div class="exercise-number">10</div>
+        <div class="exercise-title">Squat Completo (fino a 90°)</div>
+      </div>
+      <img class="exercise-img" alt="Squat Completo" src="https://storage.googleapis.com/dall-e-images/KDgusWS74CPJA1uozUhF3txWXo73%2F4e34d02c-1724-4351-bc58-4c71a853099c.png"/>
+      <div class="boxes grid-2">
+        <div class="box info">
+          <h4>Muscoli Target</h4>
+          <ul>
+            <li>Quadricipite</li>
+            <li>Grande gluteo</li>
+            <li>Ischiocrurali</li>
+            <li>Adduttori</li>
+            <li>Erettori spinali, Core</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h4>Esecuzione</h4>
+          <ol>
+            <li>Piedi larghezza spalle</li>
+            <li>Scendere fino a 90°</li>
+            <li>Risalita potente e controllata</li>
+          </ol>
+        </div>
+      </div>
+      <div class="boxes grid-3">
+        <div class="box">
+          <h4>Serie e Ripetizioni</h4>
+          <ul><li>4×12</li></ul>
+        </div>
+        <div class="box benefit">
+          <h4>Benefici</h4>
+          <ul><li>Forza globale</li></ul>
+        </div>
+        <div class="box note">
+          <h4>Note</h4>
+          <ul><li>Progressione con manubri/kettlebell</li></ul>
+        </div>
+      </div>
+    </article>
+
+    <!-- Exercise 11 -->
+    <article id="ex11" class="exercise phase-3">
+      <div class="exercise-header">
+        <div class="exercise-number">11</div>
+        <div class="exercise-title">Affondi Camminati</div>
+      </div>
+      <img class="exercise-img" alt="Affondi Camminati" src="https://storage.googleapis.com/dall-e-images/KDgusWS74CPJA1uozUhF3txWXo73%2F5528a61d-19c6-4f10-883e-6ebc164705ea.png"/>
+      <div class="boxes grid-2">
+        <div class="box info">
+          <h4>Muscoli Target</h4>
+          <ul>
+            <li>Quadricipite</li>
+            <li>Grande gluteo</li>
+            <li>Ischiocrurali</li>
+            <li>Flessori anca, Adduttori</li>
+            <li>Core</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h4>Esecuzione</h4>
+          <ol>
+            <li>Passi ampi</li>
+            <li>Toccare il suolo col ginocchio posteriore</li>
+            <li>Tronco eretto, stabilità</li>
+          </ol>
+        </div>
+      </div>
+      <div class="boxes grid-3">
+        <div class="box">
+          <h4>Serie e Ripetizioni</h4>
+          <ul><li>3×10 passi per lato</li></ul>
+        </div>
+        <div class="box benefit">
+          <h4>Benefici</h4>
+          <ul><li>Controllo dinamico multi-piano</li></ul>
+        </div>
+        <div class="box note">
+          <h4>Note</h4>
+          <ul><li>Aggiungere carico solo senza dolore</li></ul>
+        </div>
+      </div>
+    </article>
+
+    <!-- Exercise 12 -->
+    <article id="ex12" class="exercise phase-3">
+      <div class="exercise-header">
+        <div class="exercise-number">12</div>
+        <div class="exercise-title">Step-Down Eccentrico</div>
+      </div>
+      <img class="exercise-img" alt="Step-Down Eccentrico" src="https://storage.googleapis.com/dall-e-images/KDgusWS74CPJA1uozUhF3txWXo73%2F3f4d830d-2869-4d12-98c2-c5a35282b10d.png"/>
+      <div class="boxes grid-2">
+        <div class="box info">
+          <h4>Muscoli Target</h4>
+          <ul>
+            <li>Quadricipite (VMO)</li>
+            <li>Medio gluteo</li>
+            <li>Ischiocrurali</li>
+            <li>Stabilizzatori caviglia</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h4>Esecuzione</h4>
+          <ol>
+            <li>Da step 15–20 cm</li>
+            <li>Scendere 4–5s in controllo</li>
+            <li>Risalire con entrambe</li>
+          </ol>
+        </div>
+      </div>
+      <div class="boxes grid-3">
+        <div class="box">
+          <h4>Serie e Ripetizioni</h4>
+          <ul><li>3×10 per lato</li></ul>
+        </div>
+        <div class="box benefit">
+          <h4>Benefici</h4>
+          <ul><li>Controllo eccentrico protettivo</li></ul>
+        </div>
+        <div class="box note">
+          <h4>Note</h4>
+          <ul><li>Allineamento ginocchio-piede</li></ul>
+        </div>
+      </div>
+    </article>
+
+    <!-- Exercise 13 -->
+    <article id="ex13" class="exercise phase-3">
+      <div class="exercise-header">
+        <div class="exercise-number">13</div>
+        <div class="exercise-title">Single Leg Deadlift (Stacco su una gamba)</div>
+      </div>
+      <img class="exercise-img" alt="Single Leg Deadlift" src="https://storage.googleapis.com/dall-e-images/KDgusWS74CPJA1uozUhF3txWXo73%2Fab856bac-75d7-4006-b322-8adb32e9a5b3.png"/>
+      <div class="boxes grid-2">
+        <div class="box info">
+          <h4>Muscoli Target</h4>
+          <ul>
+            <li>Grande gluteo</li>
+            <li>Ischiocrurali</li>
+            <li>Erettori spinali</li>
+            <li>Core</li>
+            <li>Stabilizzatori caviglia</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h4>Esecuzione</h4>
+          <ol>
+            <li>Cerniera d’anca; schiena neutra</li>
+            <li>Gamba libera in estensione</li>
+            <li>Ritorno controllato</li>
+          </ol>
+        </div>
+      </div>
+      <div class="boxes grid-3">
+        <div class="box">
+          <h4>Serie e Ripetizioni</h4>
+          <ul><li>3×10 per lato</li></ul>
+        </div>
+        <div class="box benefit">
+          <h4>Benefici</h4>
+          <ul><li>Equilibrio e catena posteriore</li></ul>
+        </div>
+        <div class="box note">
+          <h4>Note</h4>
+          <ul><li>Iniziare vicino a un supporto</li></ul>
+        </div>
+      </div>
+    </article>
+
+    <!-- Exercise 14 -->
+    <article id="ex14" class="exercise phase-3">
+      <div class="exercise-header">
+        <div class="exercise-number">14</div>
+        <div class="exercise-title">Lateral Band Walk (Elastico)</div>
+      </div>
+      <img class="exercise-img" alt="Lateral Band Walk" src="https://storage.googleapis.com/dall-e-images/KDgusWS74CPJA1uozUhF3txWXo73%2Ff4cdb30b-c55a-4ca3-a9a8-644600635f82.png"/>
+      <div class="boxes grid-2">
+        <div class="box info">
+          <h4>Muscoli Target</h4>
+          <ul>
+            <li>Medio/Piccolo gluteo</li>
+            <li>TFL</li>
+            <li>Abduttori anca</li>
+            <li>Quadricipite (stabilizzazione)</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h4>Esecuzione</h4>
+          <ol>
+            <li>Posizione semi-squat</li>
+            <li>Elastico alle caviglie o sopra le ginocchia</li>
+            <li>Passi laterali mantenendo tensione</li>
+          </ol>
+        </div>
+      </div>
+      <div class="boxes grid-3">
+        <div class="box">
+          <h4>Serie e Ripetizioni</h4>
+          <ul><li>3×15 passi per direzione</li></ul>
+        </div>
+        <div class="box benefit">
+          <h4>Benefici</h4>
+          <ul><li>Prevenzione valgismo</li></ul>
+        </div>
+        <div class="box note">
+          <h4>Note</h4>
+          <ul><li>Non far collassare le ginocchia verso l’interno</li></ul>
+        </div>
+      </div>
+    </article>
+
+    <!-- Exercise 15 -->
+    <article id="ex15" class="exercise phase-3">
+      <div class="exercise-header">
+        <div class="exercise-number">15</div>
+        <div class="exercise-title">Esercizi Propriocettivi (superficie instabile)</div>
+      </div>
+      <img class="exercise-img" alt="Esercizi Propriocettivi" src="https://storage.googleapis.com/dall-e-images/KDgusWS74CPJA1uozUhF3txWXo73%2Fe9ecb992-10c2-4e66-ad85-fe85c4e32189.png"/>
+      <div class="boxes grid-2">
+        <div class="box info">
+          <h4>Muscoli Target</h4>
+          <ul>
+            <li>Stabilizzatori caviglia</li>
+            <li>Quadricipite</li>
+            <li>Medio gluteo</li>
+            <li>Core; catena propriocettiva</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h4>Esecuzione</h4>
+          <ol>
+            <li>Monopodalico su cuscino/board 30–60s</li>
+            <li>Progressioni: occhi chiusi</li>
+            <li>Lanci/presa palla</li>
+          </ol>
+        </div>
+      </div>
+      <div class="boxes grid-3">
+        <div class="box">
+          <h4>Serie e Ripetizioni</h4>
+          <ul><li>3×30–60s per lato</li></ul>
+        </div>
+        <div class="box benefit">
+          <h4>Benefici</h4>
+          <ul><li>Migliora controllo neuromuscolare</li></ul>
+        </div>
+        <div class="box note">
+          <h4>Note</h4>
+          <ul><li>Sicurezza prima: eseguire vicino a un appoggio</li></ul>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- Protocollo Settimanale -->
+  <section id="protocollo" class="section pb-before">
+    <h2>Protocollo Settimanale</h2>
+    <div class="protocol">
+      <h3>Frequenza</h3>
+      <p><strong>3–4 sessioni/settimana</strong> a giorni alterni.</p>
+
+      <div class="session">
+        <h4>Sessione A – Isometrie e Stabilità</h4>
+        <ul>
+          <li>Isometrie quadricipite</li>
+          <li>Wall slides / Mini squat</li>
+          <li>Step-up</li>
+          <li>Straight leg raise</li>
+          <li>Stretching leggero quadricipite / ischiocrurali</li>
+        </ul>
+      </div>
+
+      <div class="session">
+        <h4>Sessione B – Catena Posteriore e Abduttori</h4>
+        <ul>
+          <li>Ponte gluteo</li>
+          <li>Clamshell</li>
+          <li>Lateral band walk</li>
+          <li>Single leg deadlift (quando pronto)</li>
+          <li>Core</li>
+        </ul>
+      </div>
+
+      <div class="session">
+        <h4>Sessione C – Integrazione Funzionale</h4>
+        <ul>
+          <li>Squat completo</li>
+          <li>Affondi (statici → camminati)</li>
+          <li>Step-down eccentrico</li>
+          <li>Esercizi propriocettivi</li>
+        </ul>
+      </div>
+
+      <div class="session">
+        <h4>Cardio Consigliato</h4>
+        <ul>
+          <li>Cyclette (bassa resistenza)</li>
+          <li>Nuoto (no rana)</li>
+          <li>Ellittica (dopo 6–8 settimane)</li>
+          <li>Camminata su terreno pianeggiante</li>
+        </ul>
+      </div>
+
+      <div class="session">
+        <h4>Evitare (almeno 3–4 mesi)</h4>
+        <ul>
+          <li>Corsa e salti</li>
+          <li>Sport con rapidi cambi di direzione (calcio, tennis, basket)</li>
+          <li>Sci e sport ad alto impatto</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Precauzioni e Monitoraggio -->
+  <section id="precauzioni" class="section pb-before">
+    <h2>Precauzioni e Monitoraggio</h2>
+    <div class="warn">
+      <h4>Stop se:</h4>
+      <ul>
+        <li>Dolore acuto durante o dopo l’esercizio</li>
+        <li>Gonfiore importante del ginocchio</li>
+        <li>Instabilità o cedimento</li>
+        <li>Blocco doloroso</li>
+      </ul>
+    </div>
+    <div class="gold">
+      <h4>Regole d’oro</h4>
+      <ul>
+        <li>Progressione graduale</li>
+        <li>Allineamento ginocchio-piede</li>
+        <li>Controllo eccentrico</li>
+        <li>Rinforzo bilanciato</li>
+        <li>Ghiaccio 15–20 minuti se necessario</li>
+      </ul>
+    </div>
+    <div class="progress">
+      <h4>Indicatori di progresso</h4>
+      <ul>
+        <li>Diminuzione dolore/gonfiore</li>
+        <li>Aumento ROM</li>
+        <li>Aumento forza</li>
+        <li>Ritorno ADL senza limitazioni</li>
+        <li>Simmetria muscolare &lt; 10%</li>
+      </ul>
+    </div>
+    <div class="consult">
+      <h4>Consulto medico</h4>
+      <ul>
+        <li>Nessun miglioramento dopo 2–3 settimane (fase 1)</li>
+        <li>Peggioramento dei sintomi</li>
+        <li>Valutare imaging (RM) per lesioni più gravi</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<!-- Footer (screen and print fallback) -->
+<footer class="footer">
+  <div>Programma di Rafforzamento Arti Inferiori</div>
+  <div class="page-number"></div>
+</footer>
+
+</body>
+</html>
