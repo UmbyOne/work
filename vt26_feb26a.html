@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Itinerario Vietnam 2026 - PDF Generator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 800px;
+    width: 100%;
+    padding: 40px;
+  }
+
+  h1 {
+    color: #003366;
+    font-size: 28px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  .subtitle {
+    color: #555555;
+    font-size: 16px;
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .info-box {
+    background: #f8f9fa;
+    border-left: 4px solid #003366;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 5px;
+  }
+
+  .info-box h3 {
+    color: #003366;
+    margin-bottom: 10px;
+    font-size: 18px;
+  }
+
+  .info-box p {
+    color: #555555;
+    line-height: 1.6;
+    margin-bottom: 8px;
+  }
+
+  .info-box strong {
+    color: #003366;
+  }
+
+  .button-container {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+  }
+
+  button {
+    background: #003366;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  button:hover {
+    background: #004080;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 51, 102, 0.3);
+  }
+
+  button:active {
+    transform: translateY(0);
+  }
+
+  button.secondary {
+    background: #CC3333;
+  }
+
+  button.secondary:hover {
+    background: #dd4444;
+  }
+
+  .icon {
+    font-size: 20px;
+  }
+
+  .status {
+    text-align: center;
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 5px;
+    font-weight: 500;
+    display: none;
+  }
+
+  .status.success {
+    background: #d4edda;
+    color: #155724;
+    display: block;
+  }
+
+  .status.error {
+    background: #f8d7da;
+    color: #721c24;
+    display: block;
+  }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 25px 0;
+  }
+
+  .feature {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .feature-icon {
+    font-size: 30px;
+    margin-bottom: 10px;
+  }
+
+  .feature-text {
+    color: #555555;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🇻🇳 Itinerario Vietnam 2026</h1>
+  <p class="subtitle">dal 25 luglio  9 agosto 2026 (Nord, Centro, Sud)"</p>
+
+  <div class="info-box">
+    <h3>📋 Contenuto del PDF</h3>
+    <p><strong>Durata:</strong> 15 giorni, 14 notti</p>
+    <p><strong>Stile:</strong> Medio/Comfort, ritmo medio/rilassato</p>
+    <p><strong>Include:</strong> Hanoi, Ninh Binh, Ho Chi Minh/Saigon, Mekong Delta, Hoi An, Da Nang, Crociera Ha Long/Lan Ha Bay</p>
+    <p><strong>Voli:</strong> Arrivo 25/07 ore 19:55 | Partenza 09/08 ore 08:45</p>
+  </div>
+
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">📍</div>
+      <div class="feature-text">Itinerario dettagliato giorno per giorno</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">✈️</div>
+      <div class="feature-text">Voli interni e transfer</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">💰</div>
+      <div class="feature-text">Budget indicativo</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">✅</div>
+      <div class="feature-text">Checklist prenotazioni</div>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <h3>📄 Formato PDF</h3>
+    <p>✓ Ottimizzato per stampa A4</p>
+    <p>✓ Tabelle riassuntive chiare</p>
+    <p>✓ Consigli pratici e opzioni alternative</p>
+    <p>✓ Completamente in italiano</p>
+  </div>
+
+  <div class="button-container">
+    <button id="generateBtn" onclick="generatePDF()">
+      <span class="icon">📥</span>
+      <span>Genera e Scarica PDF</span>
+    </button>
+  </div>
+
+  <div id="status" class="status"></div>
+</div>
+
+<script>
+  const { jsPDF } = window.jspdf;
+
+  function generatePDF() {
+    const statusDiv = document.getElementById('status');
+    statusDiv.className = 'status';
+    statusDiv.textContent = 'Generazione PDF in corso...';
+    statusDiv.style.display = 'block';
+
+    try {
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      const contentWidth = pageWidth - 2 * margin;
+      let yPos = margin;
+
+      // Funzione per aggiungere nuova pagina se necessario
+      function checkPageBreak(neededSpace) {
+        if (yPos + neededSpace > pageHeight - margin) {
+          doc.addPage();
+          yPos = margin;
+          return true;
+        }
+        return false;
+      }
+
+      // Funzione per aggiungere testo con wrap
+      function addText(text, fontSize, style = 'normal', color = [0, 0, 0]) {
+        doc.setFontSize(fontSize);
+        doc.setTextColor(color[0], color[1], color[2]);
+        doc.setFont('helvetica', style);
+        const lines = doc.splitTextToSize(text, contentWidth);
+        const lineHeight = fontSize * 0.4;
+        
+        checkPageBreak(lines.length * lineHeight + 5);
+        doc.text(lines, margin, yPos);
+        yPos += lines.length * lineHeight + 3;
+      }
+
+      // COPERTINA
+      doc.setFillColor(218, 41, 28);
+      doc.rect(0, 0, pageWidth, 80, 'F');
+      
+      doc.setTextColor(255, 205, 0);
+      doc.setFontSize(24);
+      doc.setFont('helvetica', 'bold');
+      doc.text('ITINERARIO VIETNAM', pageWidth / 2, 30, { align: 'center' });
+      doc.text('★', pageWidth / 2, 30, { align: 'center' });★
+      doc.setFontSize(18);
+      doc.text('25 luglio > 9 agosto 2026', pageWidth / 2, 45, { align: 'center' });
+      
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Nord, Centro, Sud', pageWidth / 2, 60, { align: 'center' });
+
+      yPos = 95;
+      
+      // Info partenza
+      doc.setTextColor(0, 51, 102);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('DETTAGLI VIAGGIO', margin, yPos);
+      yPos += 8;
+
+      doc.setTextColor(85, 85, 85);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('• Arrivo ad Hanoi: 25 luglio 2026 ore 19:55 locali', margin, yPos);
+      yPos += 6;
+      doc.text('• Partenza da Hanoi: 9 agosto 2026 ore 08:45', margin, yPos);
+      yPos += 6;
+      doc.text('• Stile: Medio/Comfort', margin, yPos);
+      yPos += 6;
+      doc.text('• Ritmo: Medio/Rilassato', margin, yPos);
+      yPos += 6;
+      doc.text('• Include: Mare (Da Nang/Hoi An) e visita a Saigon/Ho Chi Minh', margin, yPos);
+      yPos += 12;
+
+      // SOMMARIO
+      doc.setTextColor(0, 51, 102);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('SOMMARIO / OVERVIEW', margin, yPos);
+      yPos += 8;
+
+      doc.setTextColor(85, 85, 85);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('• Durata: 15 giorni, 14 notti', margin, yPos);
+      yPos += 6;
+      doc.text('• Voli interni consigliati:', margin, yPos);
+      yPos += 6;
+      doc.text('  - Hanoi → Ho Chi Minh: 29 luglio', margin + 5, yPos);
+      yPos += 5;
+      doc.text('  - Ho Chi Minh → Da Nang: 1 agosto', margin + 5, yPos);
+      yPos += 5;
+      doc.text('  - Da Nang → Hanoi: 6 agosto', margin + 5, yPos);
+      yPos += 7;
+      doc.text('• Motivo logistico: Itinerario a "Y" ottimizzato per vedere Nord, Sud e Centro', margin, yPos);
+      yPos += 6;
+      doc.text('• Suggerimento crociera: Lan Ha Bay (meno affollata rispetto a Ha Long)', margin, yPos);
+      yPos += 12;
+
+      // NUOVA PAGINA PER ITINERARIO
+      doc.addPage();
+      yPos = margin;
+
+      doc.setTextColor(0, 51, 102);
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('ITINERARIO GIORNO PER GIORNO', margin, yPos);
+      yPos += 10;
+
+      // Tabella riassuntiva
+      const itineraryData = [
+        ['25/07 ven', 'Hanoi', 'Arrivo 19:55, transfer, cena leggera, Old Quarter/French Quarter', 'Old Quarter o French Quarter'],
+        ['26/07 sab', 'Hanoi', 'Hoàn Kiếm, Old Quarter, Temple of Literature, West Lake, Water Puppets', '—'],
+        ['27/07 dom', 'Ninh Binh', 'Transfer 2,5h, Tam Cốc (barca, bici tra risaie)', 'Alloggiare Tam Cốc o Trang An'],
+        ['28/07 lun', 'Ninh Binh', 'Trang An barca, Mua Cave vista', 'Rientro Hanoi sera o 29 mattina'],
+        ['29/07 mar', 'Ho Chi Minh', 'Volo mattina Hanoi→Saigon, Nguyen Hue, Bitexco Sky Deck', 'District 1 (Dong Khoi, Ben Thanh)'],
+        ['30/07 mer', 'Ho Chi Minh', 'War Remnants Museum, Reunification Palace, Notre Dame, Post Office', '—'],
+        ['31/07 gio', 'Ho Chi Minh', 'Mekong Delta tour o Cu Chi Tunnels', '—'],
+        ['01/08 ven', 'Hoi An', 'Volo pomeriggio Saigon→Da Nang, transfer Hoi An, Ancient Town lanterne', 'Cẩm Châu (medio/comfort) o An Bàng'],
+        ['02/08 sab', 'Hoi An', 'Ancient Town mattina presto, An Bàng Beach pomeriggio', '—'],
+        ['03/08 dom', 'Hoi An', 'My Son all\'alba o cooking class, mare', '—'],
+        ['04/08 lun', 'Hoi An/Da Nang', 'Relax mare o transfer Da Nang (My Khe beach)', 'Scelta tra 5 notti Hoi An o mix'],
+        ['05/08 mar', 'Da Nang', 'Mare, Marble Mountains, Son Tra o Ba Na Hills', '—'],
+        ['06/08 mer', 'Hanoi', 'Volo pomeriggio Da Nang→Hanoi', 'Old Quarter / French Quarter'],
+        ['07/08 gio', 'Lan Ha Bay', 'Crociera 1 notte Lan Ha Bay: kayak, grotte, cena a bordo', 'Più tranquilla rispetto Ha Long'],
+        ['08/08 ven', 'Hanoi', 'Sbarco mattina, shopping, relax, cena finale', '—'],
+        ['09/08 sab', '—', 'Partenza volo ore 8:45', 'Partenza hotel ~5:30, aeroporto ~7:00']
+      ];
+
+      doc.autoTable({
+        startY: yPos,
+        head: [['Data', 'Base notte', 'Attività principali', 'Suggerimenti logistici']],
+        body: itineraryData,
+        theme: 'striped',
+        headStyles: { 
+          fillColor: [0, 51, 102],
+          textColor: [255, 255, 255],
+          fontSize: 9,
+          fontStyle: 'bold'
+        },
+        bodyStyles: { 
+          fontSize: 8,
+          textColor: [85, 85, 85]
+        },
+        columnStyles: {
+          0: { cellWidth: 25 },
+          1: { cellWidth: 30 },
+          2: { cellWidth: 70 },
+          3: { cellWidth: 55 }
+        },
+        margin: { left: margin, right: margin }
+      });
+
+      yPos = doc.lastAutoTable.finalY + 15;
+
+      // VOLI INTERNI
+      checkPageBreak(40);
+      doc.setTextColor(0, 51, 102);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('VOLI INTERNI E TRANSFER DA PRENOTARE SUBITO', margin, yPos);
+      yPos += 8;
+
+      const voliData = [
+        ['Hanoi → Ho Chi Minh', '29/07', 'Mattina 8-10 o 12-14', 'Giornata utile per attività a Saigon'],
+        ['Ho Chi Minh → Da Nang', '01/08', 'Pomeriggio 14-16', 'Permette mattina libera a Saigon'],
+        ['Da Nang → Hanoi', '06/08', 'Pomeriggio 15-17', 'Arrivo serale a Hanoi, rilassato']
+      ];
+
+      doc.autoTable({
+        startY: yPos,
+        head: [['Tratta', 'Data', 'Orario consigliato', 'Note']],
+        body: voliData,
+        theme: 'grid',
+        headStyles: { 
+          fillColor: [0, 51, 102],
+          textColor: [255, 255, 255],
+          fontSize: 9,
+          fontStyle: 'bold'
+        },
+        bodyStyles: { 
+          fontSize: 9,
+          textColor: [85, 85, 85]
+        },
+        columnStyles: {
+          0: { cellWidth: 50 },
+          1: { cellWidth: 25 },
+          2: { cellWidth: 45 },
+          3: { cellWidth: 60 }
+        },
+        margin: { left: margin, right: margin }
+      });
+
+      yPos = doc.lastAutoTable.finalY + 15;
+
+      // BUDGET
+      checkPageBreak(50);
+      doc.setTextColor(0, 51, 102);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('BUDGET INDICATIVO (MEDIO/COMFORT)', margin, yPos);
+      yPos += 8;
+
+      doc.setTextColor(85, 85, 85);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('• Hotel/notte: 50-100 € (Old Quarter, District 1, Hoi An, Da Nang, riverside Hue)', margin, yPos);
+      yPos += 6;
+      doc.text('• Crociera Ha Long/Lan Ha: 120-220 € a persona per 1 notte cabina balcone', margin, yPos);
+      yPos += 6;
+      doc.text('• Voli interni: 75-130 € a tratta', margin, yPos);
+      yPos += 6;
+      doc.text('• Driver privato (Ninh Binh, transfer): 70-100 €/giorno', margin, yPos);
+      yPos += 6;
+      doc.text('• Tour Mekong Delta: 20-35 € per persona (gruppo) o 70-100 € (privato)', margin, yPos);
+      yPos += 12;
+
+      // CONSIGLI PRATICI
+      checkPageBreak(70);
+      doc.setTextColor(0, 51, 102);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('CONSIGLI PRATICI', margin, yPos);
+      yPos += 8;
+
+      doc.setTextColor(85, 85, 85);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('• Clima fine luglio/inizio agosto: Caldo umido, piogge improvvise possibili', margin, yPos);
+      yPos += 6;
+      doc.text('• Valigia: Abiti leggeri, impermeabile leggero, scarpe comode', margin, yPos);
+      yPos += 6;
+      doc.text('• Orari visite: Mattina presto o tardo pomeriggio (temperature miti, foto migliori)', margin, yPos);
+      yPos += 6;
+      doc.text('• Crociera: Prenotare con cabina balcone, portare repellente zanzare', margin, yPos);
+      yPos += 6;
+      doc.text('• Prenotazioni: Crociera, voli interni e driver privati vanno prenotati in anticipo', margin, yPos);
+      yPos += 6;
+      doc.text('• Salute: Vaccini verificare consigliati, attenzione ad alcuni cibi street food, acqua in bottiglia', margin, yPos);
+      yPos += 12;
+
+      // OPZIONI ALTERNATIVE
+      checkPageBreak(50);
+      doc.setTextColor(0, 51, 102);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('OPZIONI ALTERNATIVE', margin, yPos);
+      yPos += 8;
+
+      doc.setTextColor(85, 85, 85);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Variante senza Ha Long finale:', margin, yPos);
+      yPos += 6;
+      doc.setFont('helvetica', 'normal');
+      doc.text('per chiudere in relax: ultimi 2 giorni ad Hanoi (shopping, spa, relax)', margin, yPos);
+      yPos += 8;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Variante più montana (sostituire Centro/Sud):', margin, yPos);
+      yPos += 6;
+      doc.setFont('helvetica', 'normal');
+      doc.text('Sapa o Ha Giang Loop: Maggiore immersione natura e trekking, più faticoso, condizioni', margin, yPos);
+      yPos += 5;
+      doc.text('meteo variabili. Richiede più giorni e adatto a chi preferisce montagna rispetto a mare.', margin, yPos);
+      yPos += 12;
+
+      // PROSSIMI PASSI
+      checkPageBreak(50);
+      doc.setTextColor(204, 51, 51);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('PROSSIMI PASSI / DECISIONI', margin, yPos);
+      yPos += 8;
+
+      doc.setTextColor(85, 85, 85);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Ottimizzazione itinerario in corso..:', margin, yPos);
+      yPos += 8;
+
+      doc.text('1. Includere la crociera Ha Long/Lan Ha a fine viaggio?', margin, yPos);
+      yPos += 5;
+      doc.text('   > Sì (esperienza unica)    > No (per chiudere in relax ad Hanoi)', margin + 5, yPos);
+      yPos += 10;
+
+      doc.text('2. Notti da dividere tra Hoi An e Da Nang?', margin, yPos);
+      yPos += 5;
+      doc.text('   > 5 notti tutte a Da Nang (più mare/resort)', margin + 5, yPos);
+      yPos += 5;
+      doc.text('   > 2 Hoi An + 3 Da Nang (mix borghi/cultura)', margin + 5, yPos);
+      yPos += 10;
+
+      doc.text('3. Tra Mekong Delta e Cu Chi Tunnel, quale escursione da Ho Chi Minh?', margin, yPos);
+      yPos += 5;
+      doc.text('   > Mekong Delta    > Cu Chi Tunnels    > Entrambi (se tagliamo 1 giorno altrove)', margin + 5, yPos);
+      yPos += 10;
+
+      doc.setFont('helvetica', 'italic');
+      doc.text('L\'itinerario potrà essere aggiornato sulla base di altre decisioni e scelte di altri luoghi.', margin, yPos);
+      yPos += 12;
+
+      // CHECKLIST FINALE
+      doc.addPage();
+      yPos = margin;
+
+      doc.setTextColor(0, 51, 102);
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('CHECKLIST "DA PRENOTARE PRIMA"', margin, yPos);
+      yPos += 12;
+
+      doc.setTextColor(85, 85, 85);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      
+      const checklist = [
+        '>  Crociera Ha Long/Lan Ha (1 notte, cabina balcone consigliata)',
+        '>  Volo interno: Hanoi → Ho Chi Minh (29 luglio, mattina)',
+        '>  Volo interno: Ho Chi Minh → Da Nang (1 agosto, pomeriggio)',
+        '>  Volo interno: Da Nang → Hanoi (6 agosto, pomeriggio)',
+        '>  Driver privato per Ninh Binh (2 giorni)',
+        '>  Transfer aeroporto-hotel Hanoi (25 luglio arrivo, 9 agosto partenza)',
+        '>  Hotel Hanoi (Old Quarter o French Quarter) - Notti: 25-26, 06, 08 agosto',
+        '>  Hotel Ninh Binh (zona Tam Cốc) - Notti: 27-28 luglio',
+        '>  Hotel Ho Chi Minh (District 1) - Notti: 29-31 luglio',
+        '>  Hotel Hoi An (Cẩm Châu o An Bàng) - Notti: 1-3 agosto',
+        '>  Hotel Da Nang (My Khe Beach) - Notti: 4-5 agosto',
+        '>  Tour Mekong Delta (giornata intera da Ho Chi Minh)',
+        '>  Transfer Da Nang-Hoi An e ritorno'
+      ];
+
+      checklist.forEach(item => {
+        checkPageBreak(8);
+        doc.text(item, margin, yPos);
+        yPos += 7;
+      });
+
+      yPos += 10;
+      doc.setTextColor(204, 51, 51);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('NOTA: Per dettagli, prezzi e link, contatta Umberto.', margin, yPos);
+
+      // Footer su tutte le pagine
+      const totalPages = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.setFont('helvetica', 'normal');
+        doc.text(
+          `Itinerario Vietnam 2026 - Pagina ${i} di ${totalPages}`,
+          pageWidth / 2,
+          pageHeight - 10,
+          { align: 'center' }
+        );
+      }
+
+      // Salva il PDF
+      doc.save('It_VT26.pdf');
+
+      statusDiv.className = 'status success';
+      statusDiv.textContent = '✅ PDF generato con successo! Il download dovrebbe iniziare automaticamente.';
+
+    } catch (error) {
+      console.error('Errore durante la generazione del PDF:', error);
+      statusDiv.className = 'status error';
+      statusDiv.textContent = '❌ Errore durante la generazione del PDF. Riprova.';
+    }
+  }
+</script>
+</body>
+</html>
